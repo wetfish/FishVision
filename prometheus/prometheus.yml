@@ -9,3 +9,6 @@ scrape_configs:
   - job_name: 'stage-node'
     static_configs:
       - targets: ['107.191.43.166:9100']
+  - job_name: 'prod-node'
+    static_configs:
+      - targets: ['149.28.239.165:9100']
