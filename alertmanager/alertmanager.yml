@@ -1,11 +1,25 @@
 global:
   resolve_timeout: 5m
 
-receivers:
-  - name: "n8n-webhook"
-    webhook_configs:
-      - url: "http://172.17.0.1:5678/webhook-test/36144696-7628-41c8-8c97-f06f03f4a5e3"
-        send_resolved: true # sends resolved alerts too (optional)
+# FOR USE IN N8N AGENTS
+#receivers:
+#  - name: "n8n-webhook"
+#    webhook_configs:
+#      - url: "http://172.17.0.1:5678/webhook-test/36144696-7628-41c8-8c97-f06f03f4a5e3"
+#        send_resolved: true # sends resolved alerts too (optional)
+
+#route:
+#  receiver: "n8n-webhook"
 
 route:
-  receiver: "n8n-webhook"
+  receiver: "irc-relay"
+  group_by: ["alertname", "instance"]
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 3h
+
+receivers:
+  - name: "irc-relay"
+    webhook_configs:
+      - url: "http://irc-relay:8010/"
+        send_resolved: true
