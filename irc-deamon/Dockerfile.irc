@@ -1,0 +1,7 @@
+FROM golang:1.23 AS builder
+WORKDIR /app
+RUN go install github.com/google/alertmanager-irc-relay@latest
+
+FROM debian:stable-slim
+COPY --from=builder /go/bin/alertmanager-irc-relay /usr/local/bin/alertmanager-irc-relay
+ENTRYPOINT ["alertmanager-irc-relay"]

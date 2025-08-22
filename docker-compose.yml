@@ -41,16 +41,16 @@ services:
       - grafana-storage:/var/lib/grafana
     restart: unless-stopped
 
-  irc-daemon:
+  irc-relay:
     build:
-      context: .
+      context: ./irc-deamon
       dockerfile: Dockerfile.irc
-    container_name: irc-daemon
+    container_name: irc-relay
     ports:
       - "8010:8010"
     volumes:
-      - ./alertmanager-irc-relay.yaml:/config.yaml:ro
-    command: ["--config", "/config.yaml"]
+      - ./irc-deamon/config.yml:/etc/alertmanager-irc-relay/config.yml:ro
+    command: ["--config", "/etc/alertmanager-irc-relay/config.yml"]
     restart: unless-stopped
 
 volumes:
