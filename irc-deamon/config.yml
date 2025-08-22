@@ -1,0 +1,27 @@
+http_host: 0.0.0.0
+http_port: 8010
+
+irc_host: irc.wetfish.net
+irc_port: 6667
+irc_nickname: alertbot
+#irc_nickname_password: myNickServPassword
+irc_realname: "Prometheus Alert Bot"
+
+irc_channels:
+  - name: "botspam"
+#  - name: "#private-alerts"
+#    password: myChannelKey
+
+# How alerts are buffered and displayed
+alert_buffer_size: 2048
+msg_once_per_alert_group: no
+use_privmsg: yes
+msg_template: "⚠️ Alert {{ .Labels.alertname }} on {{ .Labels.instance }} is {{ .Status }}"
+# NickServ/ChanServ auth & messaging
+#nickserv_identify_patterns:
+#  - "identify via /msg NickServ identify <password>"
+#  - "type /msg NickServ IDENTIFY password"
+#  - "authenticate yourself to services with the IDENTIFY command"
+#
+#nickserv_name: NickServ
+#chanserv_name: ChanServ

@@ -1,12 +1,11 @@
 global:
   resolve_timeout: 5m
 
-route:
-  receiver: "default"
-
 receivers:
-  - name: "default"
-    # Example: Slack
-    # slack_configs:
-    #   - api_url: 'https://hooks.slack.com/services/XXXX/XXXX/XXXX'
-    #     channel: '#alerts'
+  - name: "n8n-webhook"
+    webhook_configs:
+      - url: "http://172.17.0.1:5678/webhook-test/36144696-7628-41c8-8c97-f06f03f4a5e3"
+        send_resolved: true # sends resolved alerts too (optional)
+
+route:
+  receiver: "n8n-webhook"
