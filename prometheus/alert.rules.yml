@@ -42,11 +42,11 @@ groups:
           description: "{{ $labels.instance }} has been unreachable for 1 minute."
 
       # test alert always fires
-      - alert: TestAlert
-        expr: vector(1) # always true, will fire immediately
-        for: 10s
-        labels:
-          severity: critical
-        annotations:
-          summary: "This is a test alert"
-          description: "Verifying Alertmanager -> IRC relay pipeline"
+      #- alert: TestAlert
+      #  expr: vector(1) # always true, will fire immediately
+      #  for: 10s
+      #  labels:
+      #    severity: critical
+      #  annotations:
+      #    summary: "This is a test alert"
+      #    description: "Verifying Alertmanager -> IRC relay pipeline"

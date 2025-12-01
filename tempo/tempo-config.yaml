@@ -1,15 +1,16 @@
-# Single-node dev setup
-
 server:
   http_listen_port: 3200
-  grpc_listen_port: 4317
+  grpc_listen_port: 4320
+  log_level: info
 
 distributor:
   receivers:
     otlp:
       protocols:
-        grpc: {}
-        http: {}
+        grpc:
+          endpoint: "0.0.0.0:4318" # Different port from server
+        http:
+          endpoint: "0.0.0.0:4319"
 
 ingester:
   lifecycler:
@@ -24,7 +25,3 @@ storage:
     backend: local
     local:
       path: /tempo-data/traces
-
-querier: {}
-
-compactor: {}

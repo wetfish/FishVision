@@ -109,11 +109,13 @@ services:
   # Tempo - Traces aggregation
   # -----------------------------
   tempo:
-    image: grafana/tempo:2.6.0
+    image: grafana/tempo:2.5.0
     container_name: tempo
     ports:
-      - "3200:3200" # HTTP API
-      - "4317:4317" # OTLP gRPC
+      - "3200:3200" # HTTP API/Query
+      - "4320:4320" # Internal gRPC (server port)
+      - "4318:4318" # OTLP gRPC receiver (for receiving traces)
+      - "4319:4319" # OTLP HTTP receiver
     user: "10001:10001"
     volumes:
       - ./tempo/tempo-config.yaml:/etc/tempo/tempo-config.yaml:ro
