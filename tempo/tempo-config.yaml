@@ -1,0 +1,29 @@
+# tempo-config.yaml - single-node local dev
+
+server:
+  http_listen_port: 3200
+  grpc_listen_port: 4317
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+        http:
+
+ingester:
+  lifecycler:
+    ring:
+      kvstore:
+        store: inmemory
+  trace_idle_period: 5m
+  max_block_duration: 1h
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /tempo-data/traces
+
+querier: {}
+compactor: {}
