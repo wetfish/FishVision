@@ -1,4 +1,4 @@
-# tempo-config.yaml - single-node local dev
+# Single-node local dev
 
 server:
   http_listen_port: 3200
@@ -8,8 +8,8 @@ distributor:
   receivers:
     otlp:
       protocols:
-        grpc:
-        http:
+        grpc: {}
+        http: {}
 
 ingester:
   lifecycler:
