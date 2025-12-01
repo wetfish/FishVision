@@ -2,11 +2,14 @@ auth_enabled: false
 
 server:
   http_listen_port: 3100
+  grpc_listen_port: 9095
   log_level: info
 
 ingester:
+  wal:
+    enabled: true
+    dir: /loki/wal # path must exist and be writable by UID 10001
   lifecycler:
-    # Changed from 127.0.0.1 to 0.0.0.0 for Docker networking
     address: 0.0.0.0
     ring:
       kvstore:
@@ -34,8 +37,6 @@ storage_config:
     shared_store: filesystem
   filesystem:
     directory: /loki/chunks
-  wal:
-    directory: /loki/wal
 
 limits_config:
   enforce_metric_name: false

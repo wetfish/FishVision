@@ -41,8 +41,7 @@ services:
     volumes:
       - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager-data:/alertmanager
-    command:
-      - --config.file=/etc/alertmanager/alertmanager.yml
+    command: ["--config.file=/etc/alertmanager/alertmanager.yml"]
     restart: unless-stopped
     healthcheck:
       test:
@@ -98,6 +97,7 @@ services:
       - loki-cache:/loki/cache
       - loki-chunks:/loki/chunks
       - loki-wal:/loki/wal
+      - loki-compactor:/loki/compactor
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget --spider -q http://loki:3100/ready || exit 1"]
@@ -153,3 +153,4 @@ volumes:
   loki-cache:
   loki-chunks:
   loki-wal:
+  loki-compactor:
