@@ -16,6 +16,7 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9090"]
 
+  # --- Existing bare-metal nodes ---
   - job_name: "stage-node"
     static_configs:
       - targets: ["107.191.43.166:9100"]
@@ -27,3 +28,72 @@ scrape_configs:
   - job_name: "testforums"
     static_configs:
       - targets: ["144.202.63.236:9100"]
+
+  # --- Factory nodes ---
+  - job_name: "factory-staging-node"
+    static_configs:
+      - targets: ["45.76.235.77:9100"]
+        labels:
+          environment: staging
+          project: factory
+
+  - job_name: "factory-prod-node"
+    static_configs:
+      - targets: ["104.156.237.105:9100"]
+        labels:
+          environment: production
+          project: factory
+
+  # --- Factory MySQL exporter (deploy exporter sidecars first) ---
+  - job_name: "factory-mysql"
+    static_configs:
+      - targets: ["45.76.235.77:9104"]
+        labels:
+          environment: staging
+          project: factory
+      - targets: ["104.156.237.105:9104"]
+        labels:
+          environment: production
+          project: factory
+
+  # --- Factory Redis exporter ---
+  - job_name: "factory-redis"
+    static_configs:
+      - targets: ["45.76.235.77:9121"]
+        labels:
+          environment: staging
+          project: factory
+      - targets: ["104.156.237.105:9121"]
+        labels:
+          environment: production
+          project: factory
+
+  # --- Factory Nginx stub_status ---
+  - job_name: "factory-nginx"
+    metrics_path: /stub_status
+    static_configs:
+      - targets: ["45.76.235.77:9113"]
+        labels:
+          environment: staging
+          project: factory
+      - targets: ["104.156.237.105:9113"]
+        labels:
+          environment: production
+          project: factory
+
+  # --- Web-Services (prod-node already covers infra via node_exporter) ---
+  # Add Traefik metrics when exposed
+  # - job_name: "web-services-traefik"
+  #   static_configs:
+  #     - targets: ["149.28.239.165:8080"]
+
+  # --- Web-Services-K8s Prometheus federation ---
+  # Uncomment when web-services-k8s Prometheus federation endpoint is available
+  # - job_name: "web-services-k8s-federation"
+  #   honor_labels: true
+  #   metrics_path: /federate
+  #   params:
+  #     match[]:
+  #       - '{job=~".+"}'
+  #   static_configs:
+  #     - targets: ["<web-services-k8s-prometheus>:9090"]

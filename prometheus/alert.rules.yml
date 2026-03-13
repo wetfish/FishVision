@@ -9,7 +9,7 @@ groups:
           severity: warning
         annotations:
           summary: "High CPU usage on {{ $labels.instance }}"
-          description: "CPU usage is above 70% for the last 5 minutes."
+          description: "CPU usage is above 80% for the last 5 minutes (current: {{ $value | printf \"%.1f\" }}%)."
 
       # Memory Usage > 90% for 5 minutes
       - alert: HighMemoryUsage
@@ -19,7 +19,7 @@ groups:
           severity: warning
         annotations:
           summary: "High memory usage on {{ $labels.instance }}"
-          description: "Memory usage is above 70% for the last 5 minutes."
+          description: "Memory usage is above 90% for the last 5 minutes (current: {{ $value | printf \"%.1f\" }}%)."
 
       # Disk Usage > 90% for 10 minutes
       - alert: HighDiskUsage
@@ -29,7 +29,7 @@ groups:
           severity: critical
         annotations:
           summary: "High disk usage on {{ $labels.instance }}"
-          description: "Disk usage is above 70% for the last 10 minutes."
+          description: "Disk usage is above 90% for the last 10 minutes (current: {{ $value | printf \"%.1f\" }}%)."
 
       # Instance down for >1 minute
       - alert: InstanceDown
@@ -50,3 +50,84 @@ groups:
       #  annotations:
       #    summary: "This is a test alert"
       #    description: "Verifying Alertmanager -> IRC relay pipeline"
+
+  - name: factory
+    rules:
+      # Factory MySQL exporter unreachable
+      - alert: FactoryMySQLDown
+        expr: up{job="factory-mysql"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          project: factory
+        annotations:
+          summary: "Factory MySQL exporter down ({{ $labels.environment }})"
+          description: "MySQL exporter at {{ $labels.instance }} has been unreachable for 2 minutes."
+
+      # Factory Redis exporter unreachable
+      - alert: FactoryRedisDown
+        expr: up{job="factory-redis"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          project: factory
+        annotations:
+          summary: "Factory Redis exporter down ({{ $labels.environment }})"
+          description: "Redis exporter at {{ $labels.instance }} has been unreachable for 2 minutes."
+
+      # Factory web (nginx) unreachable
+      - alert: FactoryAppDown
+        expr: up{job="factory-nginx"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          project: factory
+        annotations:
+          summary: "Factory app down ({{ $labels.environment }})"
+          description: "Nginx exporter at {{ $labels.instance }} has been unreachable for 2 minutes."
+
+      # MySQL connections high (>80% of max_connections default 151)
+      - alert: FactoryHighMySQLConnections
+        expr: mysql_global_status_threads_connected{job="factory-mysql"} > 120
+        for: 5m
+        labels:
+          severity: warning
+          project: factory
+        annotations:
+          summary: "High MySQL connections on Factory ({{ $labels.environment }})"
+          description: "MySQL has {{ $value }} active connections (threshold: 120)."
+
+      # Redis memory usage > 80% of maxmemory (or > 100Mi if no limit set)
+      - alert: FactoryHighRedisMemory
+        expr: redis_memory_used_bytes{job="factory-redis"} > 100 * 1024 * 1024
+        for: 5m
+        labels:
+          severity: warning
+          project: factory
+        annotations:
+          summary: "High Redis memory on Factory ({{ $labels.environment }})"
+          description: "Redis is using {{ $value | humanize1024 }}B of memory."
+
+      # Factory node high CPU (more specific than generic rule)
+      - alert: FactoryNodeHighCPU
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle", project="factory"}[5m])) * 100) > 70
+        for: 5m
+        labels:
+          severity: warning
+          project: factory
+        annotations:
+          summary: "High CPU on Factory node {{ $labels.instance }}"
+          description: "Factory node CPU usage is above 70% for 5 minutes (current: {{ $value | printf \"%.1f\" }}%). Cluster has limited headroom."
+
+  - name: web-services
+    rules:
+      # Web-services node down (covered by generic InstanceDown, but grouped here for clarity)
+      - alert: WebServicesNodeDown
+        expr: up{job="prod-node"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          project: web-services
+        annotations:
+          summary: "Web-services prod node is down"
+          description: "The web-services production node (149.28.239.165) has been unreachable for 2 minutes."

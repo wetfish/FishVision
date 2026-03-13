@@ -1,0 +1,65 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+patches:
+  # Larger storage for production
+  - target:
+      kind: PersistentVolumeClaim
+      name: prometheus-data
+    patch: |
+      - op: replace
+        path: /spec/resources/requests/storage
+        value: 50Gi
+  - target:
+      kind: PersistentVolumeClaim
+      name: loki-data
+    patch: |
+      - op: replace
+        path: /spec/resources/requests/storage
+        value: 50Gi
+  - target:
+      kind: PersistentVolumeClaim
+      name: tempo-data
+    patch: |
+      - op: replace
+        path: /spec/resources/requests/storage
+        value: 20Gi
+  # Higher resource limits for production
+  - target:
+      kind: Deployment
+      name: prometheus
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: 250m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 2Gi
+  - target:
+      kind: Deployment
+      name: grafana
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 1Gi
+  # Prod ingress hostnames with TLS
+  - target:
+      kind: Ingress
+      name: monitoring-ingress
+    patch: |
+      - op: replace
+        path: /spec/rules/0/host
+        value: grafana.wetfish.net
+      - op: replace
+        path: /spec/rules/1/host
+        value: prometheus.wetfish.net
+      - op: add
+        path: /spec/tls
+        value:
+          - hosts:
+              - grafana.wetfish.net
+              - prometheus.wetfish.net
+            secretName: monitoring-tls

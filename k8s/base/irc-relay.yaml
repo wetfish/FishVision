@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: irc-relay-config
+  namespace: monitoring
+data:
+  config.yml: |
+    http_host: 0.0.0.0
+    http_port: 8010
+    irc_host: irc.wetfish.net
+    irc_port: 6697
+    use_tls: true
+    irc_verify_ssl: no
+    irc_nickname: alertbot
+    irc_nickname_password: myNickServPassword
+    irc_realname: "Prometheus Alert Bot"
+    irc_channels:
+      - name: "#ops"
+    alert_buffer_size: 2048
+    msg_once_per_alert_group: no
+    use_privmsg: yes
+    msg_template: "⚠️ Alert {{ .Labels.alertname }} on {{ .Labels.instance }} is {{ .Status }}"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: irc-relay
+  namespace: monitoring
+  labels:
+    app: irc-relay
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: irc-relay
+  template:
+    metadata:
+      labels:
+        app: irc-relay
+    spec:
+      containers:
+        - name: irc-relay
+          image: fishvision/irc-relay:latest
+          args:
+            - --config
+            - /etc/alertmanager-irc-relay/config.yml
+          ports:
+            - containerPort: 8010
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alertmanager-irc-relay/config.yml
+              subPath: config.yml
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+      volumes:
+        - name: config
+          configMap:
+            name: irc-relay-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: irc-relay
+  namespace: monitoring
+spec:
+  selector:
+    app: irc-relay
+  ports:
+    - port: 8010
+      targetPort: 8010
