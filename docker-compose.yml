@@ -16,6 +16,7 @@ services:
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --web.enable-lifecycle
+      - --web.enable-remote-write-receiver
     depends_on:
       alertmanager:
         condition: service_healthy
@@ -60,7 +61,7 @@ services:
     image: grafana/grafana:11.5.2
     container_name: grafana
     ports:
-      - "3000:3000"
+      - "3030:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
