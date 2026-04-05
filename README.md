@@ -1,8 +1,5 @@
-```markdown
 # 🐟 FishVision  
-
 Prometheus → Alertmanager → IRC alerting pipeline using [alertmanager-irc-relay](https://github.com/google/alertmanager-irc-relay).  
-
 This project provides an **end-to-end monitoring and alerting stack** where Prometheus alerts are routed to IRC in real time.  
 
 ---
@@ -21,8 +18,7 @@ Deliver **critical Prometheus alerts** (e.g., high CPU, disk full) to a designat
 ---
 
 ## 🗂️ Project Structure  
-
-```
+```text
 FishVision/
 ├── alertmanager/
 │   └── alertmanager.yml        # Alertmanager config with webhook receiver
@@ -42,7 +38,6 @@ FishVision/
 ---
 
 ## 🧱 Architecture  
-
 | Component           | Description |
 |---------------------|-------------|
 | **Node Exporter**   | Exposes host-level metrics from Linux systems |
@@ -64,23 +59,19 @@ Optional: Node Exporter installed on monitored hosts (script provided in `utils/
 ---
 
 ## ⚙️ Quick Start  
-
 1. **Install Node Exporter (optional)**  
    ```bash
    ./utils/node-exporter-installer.sh
    ```
-
 2. **Start the stack**  
    ```bash
    docker-compose up -d
    ```
-
 3. **Access services**  
    - Prometheus → [http://localhost:9090](http://localhost:9090)  
    - Alertmanager → [http://localhost:9093](http://localhost:9093)  
    - Grafana → [http://localhost:3000](http://localhost:3000)  
    - IRC server → configured from `irc-deamon/`  
-
 4. **Trigger a test alert**  
    ```bash
    stress-ng --cpu 4 --timeout 180s
@@ -93,7 +84,6 @@ Optional: Node Exporter installed on monitored hosts (script provided in `utils/
 ---
 
 ## 🛠️ Maintenance  
-
 | Task | Frequency | Notes |
 |------|-----------|-------|
 | Test alert delivery | Monthly | Simulate CPU load & verify IRC |
@@ -108,4 +98,4 @@ Optional: Node Exporter installed on monitored hosts (script provided in `utils/
 - Enable logging for relay HTTP traffic  
 - Restrict IRC server access as appropriate  
 
----
+
