@@ -1,0 +1,47 @@
+server:
+  http_listen_port: 3200
+  grpc_listen_port: 4320
+  log_level: info
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4318" # Different port from server
+        http:
+          endpoint: "0.0.0.0:4319"
+
+ingester:
+  lifecycler:
+    ring:
+      kvstore:
+        store: inmemory
+  trace_idle_period: 5m
+  max_block_duration: 1h
+
+metrics_generator:
+  registry:
+    external_labels:
+      source: tempo
+  processor:
+    service_graphs:
+      dimensions: []
+    span_metrics:
+      dimensions: []
+  storage:
+    path: /tempo-data/generator/wal
+    remote_write:
+      - url: http://prometheus:9090/api/v1/write
+        send_exemplars: true
+
+overrides:
+  defaults:
+    metrics_generator:
+      processors: [service-graphs, span-metrics]
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /tempo-data/traces
