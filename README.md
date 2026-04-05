@@ -1,8 +1,6 @@
-# FishVision
-
-Prometheus, Alertmanager, Loki, Tempo, and Grafana observability stack with IRC alerting via [alertmanager-irc-relay](https://github.com/google/alertmanager-irc-relay) and LLM-powered alert analysis.
-
-This project provides an **end-to-end monitoring, logging, tracing, and alerting stack** where Prometheus alerts are routed to IRC in real time, and an LLM-based IRC bot provides automated alert analysis.
+# 🐟 FishVision  
+Prometheus → Alertmanager → IRC alerting pipeline using [alertmanager-irc-relay](https://github.com/google/alertmanager-irc-relay).  
+This project provides an **end-to-end monitoring and alerting stack** where Prometheus alerts are routed to IRC in real time.  
 
 ---
 
@@ -19,9 +17,8 @@ Deliver **critical Prometheus alerts** (e.g., high CPU, disk full) to a designat
 
 ---
 
-## Project Structure
-
-```
+## 🗂️ Project Structure  
+```text
 FishVision/
 ├── alertmanager/
 │   └── alertmanager.yml              # Alertmanager config with webhook receiver
@@ -75,8 +72,7 @@ FishVision/
 
 ---
 
-## Architecture
-
+## 🧱 Architecture  
 | Component           | Description |
 |---------------------|-------------|
 | **Node Exporter**   | Exposes host-level metrics from Linux systems |
@@ -103,28 +99,21 @@ Optional: Node Exporter installed on monitored hosts (script provided in `utils/
 
 ---
 
-## Quick Start
-
-1. **Install Node Exporter (optional)**
+## ⚙️ Quick Start  
+1. **Install Node Exporter (optional)**  
    ```bash
    ./utils/node-exporter-installer.sh
    ```
-
-2. **Start the stack**
+2. **Start the stack**  
    ```bash
    docker-compose up -d
    ```
-
-3. **Access services**
-   - Prometheus: [http://localhost:9090](http://localhost:9090)
-   - Alertmanager: [http://localhost:9093](http://localhost:9093)
-   - Grafana: [http://localhost:3030](http://localhost:3030)
-   - Loki: [http://localhost:3100](http://localhost:3100)
-   - Tempo: [http://localhost:3200](http://localhost:3200)
-   - Ollama: [http://localhost:11434](http://localhost:11434)
-   - IRC server: configured from `irc-deamon/`
-
-4. **Trigger a test alert**
+3. **Access services**  
+   - Prometheus → [http://localhost:9090](http://localhost:9090)  
+   - Alertmanager → [http://localhost:9093](http://localhost:9093)  
+   - Grafana → [http://localhost:3000](http://localhost:3000)  
+   - IRC server → configured from `irc-deamon/`  
+4. **Trigger a test alert**  
    ```bash
    stress-ng --cpu 4 --timeout 180s
    ```
@@ -135,25 +124,7 @@ Optional: Node Exporter installed on monitored hosts (script provided in `utils/
 
 ---
 
-## Kubernetes Deployment
-
-Kustomize manifests are provided in `k8s/` for deploying to Kubernetes clusters.
-
-```bash
-# Dev environment
-kubectl apply -k k8s/overlays/dev/
-
-# Staging
-kubectl apply -k k8s/overlays/staging/
-
-# Production
-kubectl apply -k k8s/overlays/prod/
-```
-
----
-
-## Maintenance
-
+## 🛠️ Maintenance  
 | Task | Frequency | Notes |
 |------|-----------|-------|
 | Test alert delivery | Monthly | Simulate CPU load and verify IRC |
@@ -169,8 +140,4 @@ kubectl apply -k k8s/overlays/prod/
 - Restrict IRC server access as appropriate
 - See [docs/security-audit.md](docs/security-audit.md) for a detailed security audit
 
----
 
-## Documentation
-- [Planned Implementation](docs/planned-implementation.md) -- adaptation and rollout plan
-- [Security Audit](docs/security-audit.md) -- security review and recommendations
