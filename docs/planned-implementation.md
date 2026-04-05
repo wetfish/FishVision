@@ -38,10 +38,11 @@ Total additional resource cost: ~30m CPU, ~96Mi RAM (well within headroom)
 - Add `FactoryHighRedisMemory` — Redis memory threshold
 - Add `FactoryPodRestarts` — Kubernetes pod restart count (via kube-state-metrics or custom)
 
-### 1.4 Grafana Datasource Provisioning
-**New files**: `grafana/provisioning/datasources/` and `grafana/provisioning/dashboards/`
-- Auto-provision Prometheus, Loki, Tempo datasources (currently manual)
-- Create factory dashboard JSON with panels for: app health, MySQL metrics, Redis metrics, node resources
+### 1.4 Grafana Datasource Provisioning -- COMPLETED
+**Files**: `grafana/provisioning/datasources/datasources.yml` and `grafana/provisioning/dashboards/dashboards.yml`
+- Auto-provision Prometheus, Loki, Tempo datasources
+- Factory dashboard JSON created (`grafana/dashboards/factory.json`)
+- Andon alert observability dashboard added (`grafana/dashboards/andon-alert-observability.json`)
 
 ---
 
@@ -67,8 +68,8 @@ Total additional resource cost: ~30m CPU, ~96Mi RAM (well within headroom)
 
 Create K8s manifests following factory's Kustomize pattern so FishVision can be deployed in K8s when resources allow.
 
-### 3.1 Base Manifests
-**New directory**: `k8s/base/`
+### 3.1 Base Manifests -- COMPLETED
+**Directory**: `k8s/base/`
 - `namespace.yaml` — `monitoring` namespace
 - `prometheus.yaml` — Deployment + ConfigMap + PVC + Service
 - `alertmanager.yaml` — Deployment + ConfigMap + PVC + Service
@@ -79,8 +80,8 @@ Create K8s manifests following factory's Kustomize pattern so FishVision can be 
 - `ingress.yaml` — Ingress for Grafana/Prometheus UIs
 - `kustomization.yaml`
 
-### 3.2 Overlays
-**New directories**: `k8s/overlays/{dev,staging,prod}/`
+### 3.2 Overlays -- COMPLETED
+**Directories**: `k8s/overlays/{dev,staging,prod}/`
 - Environment-specific hostnames, storage classes, resource limits
 - Image tag overrides
 
@@ -93,9 +94,9 @@ Create K8s manifests following factory's Kustomize pattern so FishVision can be 
 - Pin image versions (currently `prom/prometheus:latest`)
 - Add Grafana provisioning instead of default admin/admin with no datasources
 
-### 4.2 Add Promtail/Log Collection
-- Add Promtail to docker-compose.yml for collecting container logs → Loki
-- Configure log scraping for factory app logs (if accessible)
+### 4.2 Add Promtail/Log Collection -- COMPLETED
+- Promtail added to `docker-compose.yml` collecting container and host logs to Loki
+- Configuration at `promtail/promtail-config.yaml`
 
 ---
 
