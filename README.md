@@ -1,11 +1,11 @@
 # FishVision
 
-<img width="1099" height="552" alt="image" src="https://github.com/user-attachments/assets/50414b7b-b0a7-4c71-bb7a-445a89eba97c" />
-
-
 Prometheus, Alertmanager, Loki, Tempo, and Grafana observability stack with IRC alerting via [alertmanager-irc-relay](https://github.com/google/alertmanager-irc-relay) and LLM-powered alert analysis.
 
 This project provides an **end-to-end monitoring, logging, tracing, and alerting stack** where Prometheus alerts are routed to IRC in real time, and an LLM-based IRC bot provides automated alert analysis.
+
+<img width="1099" height="552" alt="image" src="https://github.com/user-attachments/assets/50414b7b-b0a7-4c71-bb7a-445a89eba97c" />
+
 
 ---
 
