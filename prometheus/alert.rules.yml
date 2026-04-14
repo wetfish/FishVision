@@ -138,6 +138,28 @@ groups:
           grafana_url: "http://localhost:3030/d/factory-overview"
           runbook: "1) Check Vultr control panel 2) Try SSH access 3) Check for host-level issues 4) Failover if available 5) Escalate to infra team"
 
+      - alert: BackupStale
+        expr: time() - backup_last_success_timestamp{job="prod-node"} > 28800
+        for: 10m
+        labels:
+          severity: critical
+          project: web-services
+        annotations:
+          summary: "Wetfish prod backup has not run in over 8 hours"
+          description: "Last successful backup was {{ $value | humanizeDuration }} ago. Expected every 6 hours. Check /var/log/backups.log on prod."
+          runbook: "1) SSH to prod 2) Check cron: `crontab -l` 3) Check logs: `tail -50 /var/log/backups.log` 4) Run manually: `/opt/web-services/util/improved-backups.sh` 5) Check S3 for recent objects"
+
+      - alert: BackupMetricMissing
+        expr: absent(backup_last_success_timestamp{job="prod-node"})
+        for: 30m
+        labels:
+          severity: warning
+          project: web-services
+        annotations:
+          summary: "Backup metric missing from prod node"
+          description: "backup_last_success_timestamp not present in node_exporter metrics. Backup script may never have run or textfile collector is misconfigured."
+          runbook: "1) SSH to prod 2) Check: `cat /var/lib/node_exporter/textfile_collector/backup.prom` 3) Verify node_exporter flag: `systemctl cat node_exporter`"
+
   - name: andon-alert-otel
     rules:
       - alert: AndonAlertHighLatency
