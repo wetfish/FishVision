@@ -167,6 +167,50 @@ services:
     depends_on:
       - alertmanager
 
+  # -----------------------------
+  # Ollama - Local LLM inference (optional, profile: llm)
+  # -----------------------------
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    profiles: [llm]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:11434/api/tags || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # -----------------------------
+  # IRC Bot - LLM alert analysis (optional, profile: llm)
+  # -----------------------------
+  irc-bot:
+    build:
+      context: ./irc-bot
+    container_name: irc-bot
+    profiles: [llm]
+    environment:
+      IRC_HOST: "irc.wetfish.net"
+      IRC_PORT: "6697"
+      IRC_USE_TLS: "true"
+      IRC_NICK: "fishvision"
+      IRC_NICKSERV_PASS: ""
+      IRC_CHANNEL: "#botspam"
+      ALERT_BOT_NICK: "alertbot"
+      OLLAMA_URL: "http://ollama:11434"
+      OLLAMA_MODEL: "qwen2.5:3b"
+      GRAFANA_URL: "http://grafana:3000"
+    restart: unless-stopped
+    depends_on:
+      - irc-relay
+      - prometheus
+      - loki
+      - tempo
+
 volumes:
   prometheus-data:
   alertmanager-data:
@@ -177,3 +221,4 @@ volumes:
   loki-chunks:
   loki-wal:
   loki-compactor:
+  ollama-data:

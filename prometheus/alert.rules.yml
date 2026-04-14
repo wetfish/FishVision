@@ -1,7 +1,6 @@
 groups:
   - name: server-health
     rules:
-      # CPU Usage > 80% for 5 minutes
       - alert: HighCPUUsage
         expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
         for: 5m
@@ -9,9 +8,11 @@ groups:
           severity: warning
         annotations:
           summary: "High CPU usage on {{ $labels.instance }}"
-          description: "CPU usage is above 80% for the last 5 minutes (current: {{ $value | printf \"%.1f\" }}%)."
+          description: "CPU at {{ $value | printf \"%.1f\" }}% for 5+ min. Check for runaway processes or increased load."
+          grafana_url: "http://localhost:3030/d/factory-overview?var-environment=All"
+          logs_url: "http://localhost:3030/explore?orgId=1&left={\"datasource\":\"loki\",\"queries\":[{\"expr\":\"{job=~\\\".*\\\"}|=\\\"error\\\"\"}]}"
+          runbook: "1) SSH to host 2) Run `top -bn1` to identify process 3) Check recent deployments 4) Scale horizontally if load-driven"
 
-      # Memory Usage > 90% for 5 minutes
       - alert: HighMemoryUsage
         expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
         for: 5m
@@ -19,9 +20,10 @@ groups:
           severity: warning
         annotations:
           summary: "High memory usage on {{ $labels.instance }}"
-          description: "Memory usage is above 90% for the last 5 minutes (current: {{ $value | printf \"%.1f\" }}%)."
+          description: "Memory at {{ $value | printf \"%.1f\" }}% for 5+ min. Risk of OOM kills."
+          grafana_url: "http://localhost:3030/d/factory-overview?var-environment=All"
+          runbook: "1) SSH to host 2) Run `free -h` and `ps aux --sort=-%mem | head` 3) Check for memory leaks 4) Restart offending service"
 
-      # Disk Usage > 90% for 10 minutes
       - alert: HighDiskUsage
         expr: (node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} - node_filesystem_free_bytes{fstype!~"tmpfs|overlay"}) / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} * 100 > 90
         for: 10m
@@ -29,31 +31,24 @@ groups:
           severity: critical
         annotations:
           summary: "High disk usage on {{ $labels.instance }}"
-          description: "Disk usage is above 90% for the last 10 minutes (current: {{ $value | printf \"%.1f\" }}%)."
+          description: "Disk {{ $labels.mountpoint }} at {{ $value | printf \"%.1f\" }}%. Service disruption imminent if full."
+          grafana_url: "http://localhost:3030/d/factory-overview?var-environment=All"
+          runbook: "1) SSH to host 2) Run `df -h` and `du -sh /var/log/* | sort -rh | head` 3) Clean old logs/containers: `docker system prune` 4) Expand volume if recurring"
 
-      # Instance down for >1 minute
       - alert: InstanceDown
         expr: up == 0
         for: 1m
         labels:
           severity: critical
         annotations:
-          summary: "Instance {{ $labels.instance }} down"
-          description: "{{ $labels.instance }} has been unreachable for 1 minute."
-
-      # test alert always fires
-      #- alert: TestAlert
-      #  expr: vector(1) # always true, will fire immediately
-      #  for: 10s
-      #  labels:
-      #    severity: critical
-      #  annotations:
-      #    summary: "This is a test alert"
-      #    description: "Verifying Alertmanager -> IRC relay pipeline"
+          summary: "Instance {{ $labels.instance }} is DOWN"
+          description: "{{ $labels.job }} exporter at {{ $labels.instance }} unreachable for 1+ min. All monitoring data from this target is stale."
+          grafana_url: "http://localhost:3030/d/factory-overview?var-environment=All"
+          logs_url: "http://localhost:3030/explore?orgId=1&left={\"datasource\":\"loki\",\"queries\":[{\"expr\":\"{job=~\\\".*\\\"}|=\\\"error\\\"\"}]}"
+          runbook: "1) Ping host: `ping {{ $labels.instance }}` 2) Check SSH access 3) Verify exporter process: `systemctl status node_exporter` 4) Check firewall rules 5) Escalate if host unreachable"
 
   - name: factory
     rules:
-      # Factory MySQL exporter unreachable
       - alert: FactoryMySQLDown
         expr: up{job="factory-mysql"} == 0
         for: 2m
@@ -61,10 +56,12 @@ groups:
           severity: critical
           project: factory
         annotations:
-          summary: "Factory MySQL exporter down ({{ $labels.environment }})"
-          description: "MySQL exporter at {{ $labels.instance }} has been unreachable for 2 minutes."
+          summary: "Factory MySQL down ({{ $labels.environment }})"
+          description: "MySQL exporter at {{ $labels.instance }} unreachable for 2+ min. Database queries will fail. Application impact: FULL OUTAGE."
+          grafana_url: "http://localhost:3030/d/factory-overview?var-environment={{ $labels.environment }}"
+          logs_url: "http://localhost:3030/explore?orgId=1&left={\"datasource\":\"loki\",\"queries\":[{\"expr\":\"{container=\\\"laravel-db\\\"}\"}]}"
+          runbook: "1) Check container: `docker ps | grep mysql` 2) Check logs: `docker logs laravel-db --tail 50` 3) Restart: `docker restart laravel-db` 4) Verify connections restored"
 
-      # Factory Redis exporter unreachable
       - alert: FactoryRedisDown
         expr: up{job="factory-redis"} == 0
         for: 2m
@@ -72,10 +69,11 @@ groups:
           severity: critical
           project: factory
         annotations:
-          summary: "Factory Redis exporter down ({{ $labels.environment }})"
-          description: "Redis exporter at {{ $labels.instance }} has been unreachable for 2 minutes."
+          summary: "Factory Redis down ({{ $labels.environment }})"
+          description: "Redis exporter at {{ $labels.instance }} unreachable for 2+ min. Cache and session data unavailable."
+          grafana_url: "http://localhost:3030/d/factory-overview?var-environment={{ $labels.environment }}"
+          runbook: "1) Check container status 2) Check Redis logs 3) Restart Redis container 4) Monitor session errors in app logs"
 
-      # Factory web (nginx) unreachable
       - alert: FactoryAppDown
         expr: up{job="factory-nginx"} == 0
         for: 2m
@@ -84,9 +82,11 @@ groups:
           project: factory
         annotations:
           summary: "Factory app down ({{ $labels.environment }})"
-          description: "Nginx exporter at {{ $labels.instance }} has been unreachable for 2 minutes."
+          description: "Nginx at {{ $labels.instance }} unreachable for 2+ min. Users cannot access AndonAlert. CUSTOMER-FACING OUTAGE."
+          grafana_url: "http://localhost:3030/d/andon-alert-observability"
+          logs_url: "http://localhost:3030/explore?orgId=1&left={\"datasource\":\"loki\",\"queries\":[{\"expr\":\"{container=\\\"laravel-nginx\\\"}\"}]}"
+          runbook: "1) Check containers: `docker compose ps` 2) Check nginx logs: `docker logs laravel-nginx --tail 50` 3) Check PHP-FPM: `docker logs laravel-app --tail 50` 4) Restart stack: `docker compose restart`"
 
-      # MySQL connections high (>80% of max_connections default 151)
       - alert: FactoryHighMySQLConnections
         expr: mysql_global_status_threads_connected{job="factory-mysql"} > 120
         for: 5m
@@ -95,9 +95,10 @@ groups:
           project: factory
         annotations:
           summary: "High MySQL connections on Factory ({{ $labels.environment }})"
-          description: "MySQL has {{ $value }} active connections (threshold: 120)."
+          description: "{{ $value | printf \"%.0f\" }} active connections (threshold: 120, default max: 151). Connection pool exhaustion imminent."
+          grafana_url: "http://localhost:3030/d/factory-overview?var-environment={{ $labels.environment }}"
+          runbook: "1) Check for connection leaks: `SHOW PROCESSLIST` 2) Kill idle connections 3) Review app connection pool config 4) Consider increasing max_connections"
 
-      # Redis memory usage > 80% of maxmemory (or > 100Mi if no limit set)
       - alert: FactoryHighRedisMemory
         expr: redis_memory_used_bytes{job="factory-redis"} > 100 * 1024 * 1024
         for: 5m
@@ -106,9 +107,10 @@ groups:
           project: factory
         annotations:
           summary: "High Redis memory on Factory ({{ $labels.environment }})"
-          description: "Redis is using {{ $value | humanize1024 }}B of memory."
+          description: "Redis using {{ $value | humanize1024 }}B (threshold: 100Mi). May trigger evictions or OOM."
+          grafana_url: "http://localhost:3030/d/factory-overview?var-environment={{ $labels.environment }}"
+          runbook: "1) Check key count: `redis-cli DBSIZE` 2) Find large keys: `redis-cli --bigkeys` 3) Check TTLs on session keys 4) Flush stale data if needed"
 
-      # Factory node high CPU (more specific than generic rule)
       - alert: FactoryNodeHighCPU
         expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle", project="factory"}[5m])) * 100) > 70
         for: 5m
@@ -117,11 +119,13 @@ groups:
           project: factory
         annotations:
           summary: "High CPU on Factory node {{ $labels.instance }}"
-          description: "Factory node CPU usage is above 70% for 5 minutes (current: {{ $value | printf \"%.1f\" }}%). Cluster has limited headroom."
+          description: "CPU at {{ $value | printf \"%.1f\" }}% for 5+ min. Limited headroom on this node."
+          grafana_url: "http://localhost:3030/d/factory-overview?var-environment=All"
+          logs_url: "http://localhost:3030/explore?orgId=1&left={\"datasource\":\"loki\",\"queries\":[{\"expr\":\"{container=\\\"laravel-app\\\"}|=\\\"ERROR\\\"\"}]}"
+          runbook: "1) Check OTel traces for slow requests 2) Look for query bottlenecks in MySQL 3) Check for cron job overlap 4) Consider horizontal scaling"
 
   - name: web-services
     rules:
-      # Web-services node down (covered by generic InstanceDown, but grouped here for clarity)
       - alert: WebServicesNodeDown
         expr: up{job="prod-node"} == 0
         for: 2m
@@ -129,5 +133,47 @@ groups:
           severity: critical
           project: web-services
         annotations:
-          summary: "Web-services prod node is down"
-          description: "The web-services production node (149.28.239.165) has been unreachable for 2 minutes."
+          summary: "Web-services prod node is DOWN"
+          description: "Production node 149.28.239.165 unreachable for 2+ min. All web services on this node are affected."
+          grafana_url: "http://localhost:3030/d/factory-overview"
+          runbook: "1) Check Vultr control panel 2) Try SSH access 3) Check for host-level issues 4) Failover if available 5) Escalate to infra team"
+
+  - name: andon-alert-otel
+    rules:
+      - alert: AndonAlertHighLatency
+        expr: histogram_quantile(0.95, sum(rate(traces_spanmetrics_latency_bucket{service="andon-alert", span_kind="SPAN_KIND_SERVER"}[5m])) by (le)) > 500
+        for: 5m
+        labels:
+          severity: warning
+          project: factory
+        annotations:
+          summary: "AndonAlert P95 latency above 500ms"
+          description: "P95 request latency is {{ $value | printf \"%.0f\" }}ms. Users are experiencing slow page loads."
+          grafana_url: "http://localhost:3030/d/andon-alert-observability"
+          logs_url: "http://localhost:3030/explore?orgId=1&left={\"datasource\":\"tempo\",\"queries\":[{\"queryType\":\"traceql\",\"query\":\"{resource.service.name=\\\"andon-alert\\\" && duration > 500ms}\"}]}"
+          runbook: "1) Check trace waterfall for slow spans 2) Look for DB query bottlenecks 3) Check Redis cache hit rate 4) Review recent deployments"
+
+      - alert: AndonAlertHighErrorRate
+        expr: sum(rate(traces_spanmetrics_calls_total{service="andon-alert", status_code="STATUS_CODE_ERROR"}[5m])) / sum(rate(traces_spanmetrics_calls_total{service="andon-alert"}[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          project: factory
+        annotations:
+          summary: "AndonAlert error rate above 5%"
+          description: "{{ $value | printf \"%.1f\" }}% of requests are failing. Users are seeing errors."
+          grafana_url: "http://localhost:3030/d/andon-alert-observability"
+          logs_url: "http://localhost:3030/explore?orgId=1&left={\"datasource\":\"loki\",\"queries\":[{\"expr\":\"{container=\\\"laravel-app\\\"}|=\\\"ERROR\\\"\"}]}"
+          runbook: "1) Check error logs in Loki 2) Look for common exception patterns 3) Check if MySQL/Redis are healthy 4) Rollback recent deployment if correlated"
+
+      - alert: AndonAlertNoTraces
+        expr: absent(traces_spanmetrics_calls_total{service="andon-alert"}) == 1
+        for: 10m
+        labels:
+          severity: warning
+          project: factory
+        annotations:
+          summary: "No traces from AndonAlert for 10+ min"
+          description: "OTel instrumentation may be broken or the app is down. No spans are being received by Tempo."
+          grafana_url: "http://localhost:3030/d/andon-alert-observability"
+          runbook: "1) Check if laravel-app container is running 2) Verify OTEL env vars 3) Check Tempo ingestion endpoint 4) Look for OTel export errors in app logs"
