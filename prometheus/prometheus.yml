@@ -68,9 +68,8 @@ scrape_configs:
           environment: production
           project: factory
 
-  # --- Factory Nginx stub_status ---
+  # --- Factory Nginx exporter ---
   - job_name: "factory-nginx"
-    metrics_path: /stub_status
     static_configs:
       - targets: ["45.76.235.77:9113"]
         labels:
