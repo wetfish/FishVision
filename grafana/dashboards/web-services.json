@@ -1,0 +1,174 @@
+{
+  "title": "Web Services",
+  "uid": "web-services-overview",
+  "tags": ["web-services"],
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "type": "custom",
+        "label": "Environment",
+        "current": { "value": "staging", "text": "staging" },
+        "options": [
+          { "value": "staging", "text": "staging", "selected": true },
+          { "value": "production", "text": "production" }
+        ],
+        "query": "staging,production"
+      },
+      {
+        "name": "router",
+        "type": "query",
+        "label": "Router",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "query": "label_values({job=\"traefik-access\", environment=\"$environment\"}, router)",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".+"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Request Rate (req/s)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [
+        {
+          "expr": "sum by (router) (rate({job=\"traefik-access\", environment=\"$environment\", router=~\"$router\"}[2m]))",
+          "legendFormat": "{{router}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "lineWidth": 2 }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Error Rate — 4xx/5xx (req/s)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [
+        {
+          "expr": "sum by (router, status) (rate({job=\"traefik-access\", environment=\"$environment\", router=~\"$router\", status=~\"[45]..\"}[2m]))",
+          "legendFormat": "{{router}} {{status}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2 }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Status Code Breakdown",
+      "type": "piechart",
+      "gridPos": { "x": 0, "y": 8, "w": 8, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [
+        {
+          "expr": "sum by (status) (count_over_time({job=\"traefik-access\", environment=\"$environment\", router=~\"$router\"}[1h]))",
+          "legendFormat": "HTTP {{status}}",
+          "queryType": "instant"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Requests by Router (last 1h)",
+      "type": "bargauge",
+      "gridPos": { "x": 8, "y": 8, "w": 8, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["sum"] }
+      },
+      "targets": [
+        {
+          "expr": "sum by (router) (count_over_time({job=\"traefik-access\", environment=\"$environment\", router=~\"$router\"}[1h]))",
+          "legendFormat": "{{router}}",
+          "queryType": "instant"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Top Client IPs (last 1h)",
+      "type": "table",
+      "gridPos": { "x": 16, "y": 8, "w": 8, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": {
+        "sortBy": [{ "displayName": "Value", "desc": true }]
+      },
+      "targets": [
+        {
+          "expr": "topk(10, sum by (detected_fields_ClientHost) (count_over_time({job=\"traefik-access\", environment=\"$environment\", router=~\"$router\"}[1h])))",
+          "legendFormat": "{{detected_fields_ClientHost}}",
+          "queryType": "instant"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Request Log",
+      "type": "logs",
+      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 10 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": {
+        "dedupStrategy": "none",
+        "showLabels": false,
+        "wrapLogMessage": false,
+        "prettifyLogMessage": true,
+        "enableLogDetails": true
+      },
+      "targets": [
+        {
+          "expr": "{job=\"traefik-access\", environment=\"$environment\", router=~\"$router\"}",
+          "queryType": "range"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Host CPU Usage %",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 26, "w": 12, "h": 7 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\", project=\"web-services\", environment=\"$environment\"}[2m])) * 100)",
+          "legendFormat": "{{instance}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "max": 100 } }
+    },
+    {
+      "id": 8,
+      "title": "Host Memory Usage %",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 26, "w": 12, "h": 7 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "100 * (1 - (node_memory_MemAvailable_bytes{project=\"web-services\", environment=\"$environment\"} / node_memory_MemTotal_bytes{project=\"web-services\", environment=\"$environment\"}))",
+          "legendFormat": "{{instance}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "max": 100 } }
+    }
+  ],
+  "schemaVersion": 36
+}
