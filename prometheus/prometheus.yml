@@ -16,18 +16,23 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9090"]
 
-  # --- Existing bare-metal nodes ---
-  - job_name: "stage-node"
+  # --- Web-Services nodes ---
+  - job_name: "web-services-node"
     static_configs:
       - targets: ["107.191.43.166:9100"]
-
-  - job_name: "prod-node"
-    static_configs:
+        labels:
+          environment: staging
+          project: web-services
       - targets: ["149.28.239.165:9100"]
+        labels:
+          environment: production
+          project: web-services
 
   - job_name: "testforums"
     static_configs:
       - targets: ["144.202.63.236:9100"]
+        labels:
+          project: web-services
 
   # --- Factory nodes ---
   - job_name: "factory-staging-node"
@@ -80,11 +85,17 @@ scrape_configs:
           environment: production
           project: factory
 
-  # --- Web-Services (prod-node already covers infra via node_exporter) ---
-  # Add Traefik metrics when exposed
-  # - job_name: "web-services-traefik"
-  #   static_configs:
-  #     - targets: ["149.28.239.165:8080"]
+  # --- Web-Services Traefik metrics ---
+  - job_name: "web-services-traefik"
+    static_configs:
+      - targets: ["107.191.43.166:8082"]
+        labels:
+          environment: staging
+          project: web-services
+      - targets: ["149.28.239.165:8082"]
+        labels:
+          environment: production
+          project: web-services
 
   # --- Web-Services-K8s Prometheus federation ---
   # Uncomment when web-services-k8s Prometheus federation endpoint is available
