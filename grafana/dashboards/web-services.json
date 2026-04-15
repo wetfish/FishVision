@@ -1,0 +1,573 @@
+{
+  "title": "Web Services",
+  "uid": "web-services-overview",
+  "tags": ["web-services"],
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "type": "custom",
+        "label": "Environment",
+        "current": { "value": "staging", "text": "staging" },
+        "options": [
+          { "value": "staging", "text": "staging", "selected": true },
+          { "value": "production", "text": "production" }
+        ],
+        "query": "staging,production"
+      }
+    ]
+  },
+  "panels": [
+
+    {
+      "id": 100,
+      "title": "Traffic & Errors",
+      "type": "row",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+
+    {
+      "id": 1,
+      "title": "Total Requests / min",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": {
+        "reduceOptions": { "calcs": ["mean"] },
+        "orientation": "auto",
+        "graphMode": "area",
+        "colorMode": "background"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqpm",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate({job=\"traefik-access\", environment=\"$environment\", router!~\"prometheus@internal|acme-http@internal|web-to-websecure@internal\"}[5m])) * 60",
+          "queryType": "range",
+          "legendFormat": "req/min"
+        }
+      ]
+    },
+
+    {
+      "id": 2,
+      "title": "Error Rate (4xx+5xx)",
+      "type": "stat",
+      "gridPos": { "x": 4, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": {
+        "reduceOptions": { "calcs": ["mean"] },
+        "orientation": "auto",
+        "graphMode": "area",
+        "colorMode": "background"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.05 },
+              { "color": "red", "value": 0.20 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate({job=\"traefik-access\", environment=\"$environment\", router!~\"prometheus@internal|acme-http@internal|web-to-websecure@internal\", status=~\"[45]..\"}[5m])) / sum(rate({job=\"traefik-access\", environment=\"$environment\", router!~\"prometheus@internal|acme-http@internal|web-to-websecure@internal\"}[5m]))",
+          "queryType": "range",
+          "legendFormat": "error rate"
+        }
+      ]
+    },
+
+    {
+      "id": 3,
+      "title": "Median Response Time (p50)",
+      "type": "stat",
+      "gridPos": { "x": 8, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": {
+        "reduceOptions": { "calcs": ["mean"] },
+        "graphMode": "area",
+        "colorMode": "background"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 500 },
+              { "color": "red", "value": 2000 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.50, {job=\"traefik-access\", environment=\"$environment\", router!~\"prometheus@internal|acme-http@internal|web-to-websecure@internal\"} | json | unwrap Duration [5m]) / 1e6",
+          "queryType": "range",
+          "legendFormat": "p50 ms"
+        }
+      ]
+    },
+
+    {
+      "id": 4,
+      "title": "p95 Response Time",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": {
+        "reduceOptions": { "calcs": ["mean"] },
+        "graphMode": "area",
+        "colorMode": "background"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1000 },
+              { "color": "red", "value": 5000 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.95, {job=\"traefik-access\", environment=\"$environment\", router!~\"prometheus@internal|acme-http@internal|web-to-websecure@internal\"} | json | unwrap Duration [5m]) / 1e6",
+          "queryType": "range",
+          "legendFormat": "p95 ms"
+        }
+      ]
+    },
+
+    {
+      "id": 5,
+      "title": "Bandwidth Out",
+      "type": "stat",
+      "gridPos": { "x": 16, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": {
+        "reduceOptions": { "calcs": ["mean"] },
+        "graphMode": "area",
+        "colorMode": "background"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate({job=\"traefik-access\", environment=\"$environment\", router!~\"prometheus@internal|acme-http@internal|web-to-websecure@internal\"} | json | unwrap DownstreamContentSize [5m]))",
+          "queryType": "range",
+          "legendFormat": "bytes/s"
+        }
+      ]
+    },
+
+    {
+      "id": 6,
+      "title": "5xx Errors Now",
+      "type": "stat",
+      "gridPos": { "x": 20, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "colorMode": "background"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({job=\"traefik-access\", environment=\"$environment\", status=~\"5..\", router!~\"prometheus@internal|acme-http@internal\"}[5m]))",
+          "queryType": "range",
+          "legendFormat": "5xx"
+        }
+      ]
+    },
+
+    {
+      "id": 200,
+      "title": "Request Traffic",
+      "type": "row",
+      "gridPos": { "x": 0, "y": 5, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+
+    {
+      "id": 7,
+      "title": "Request Rate by Service",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 6, "w": 12, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": { "tooltip": { "mode": "multi" } },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (router) (rate({job=\"traefik-access\", environment=\"$environment\", router=~\"online@file|wiki@file|wetfish-home@file\"}[2m]))",
+          "legendFormat": "{{router}}",
+          "queryType": "range"
+        }
+      ]
+    },
+
+    {
+      "id": 8,
+      "title": "Response Latency Percentiles",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 6, "w": 12, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": { "tooltip": { "mode": "multi" } },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": { "lineWidth": 2, "fillOpacity": 5 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.50, {job=\"traefik-access\", environment=\"$environment\", router=~\"online@file|wiki@file|wetfish-home@file\"} | json | unwrap Duration [2m]) / 1e6",
+          "legendFormat": "p50",
+          "queryType": "range"
+        },
+        {
+          "expr": "quantile_over_time(0.95, {job=\"traefik-access\", environment=\"$environment\", router=~\"online@file|wiki@file|wetfish-home@file\"} | json | unwrap Duration [2m]) / 1e6",
+          "legendFormat": "p95",
+          "queryType": "range"
+        },
+        {
+          "expr": "quantile_over_time(0.99, {job=\"traefik-access\", environment=\"$environment\", router=~\"online@file|wiki@file|wetfish-home@file\"} | json | unwrap Duration [2m]) / 1e6",
+          "legendFormat": "p99",
+          "queryType": "range"
+        }
+      ]
+    },
+
+    {
+      "id": 9,
+      "title": "HTTP Status Codes Over Time",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 14, "w": 12, "h": 7 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "lineWidth": 1, "fillOpacity": 20, "stacking": { "mode": "normal" } }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "2xx" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "3xx" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "4xx" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "5xx" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "sum(rate({job=\"traefik-access\", environment=\"$environment\", router=~\"online@file|wiki@file|wetfish-home@file\", status=~\"2..\"}[2m]))",
+          "legendFormat": "2xx", "queryType": "range"
+        },
+        {
+          "expr": "sum(rate({job=\"traefik-access\", environment=\"$environment\", router=~\"online@file|wiki@file|wetfish-home@file\", status=~\"3..\"}[2m]))",
+          "legendFormat": "3xx", "queryType": "range"
+        },
+        {
+          "expr": "sum(rate({job=\"traefik-access\", environment=\"$environment\", router=~\"online@file|wiki@file|wetfish-home@file\", status=~\"4..\"}[2m]))",
+          "legendFormat": "4xx", "queryType": "range"
+        },
+        {
+          "expr": "sum(rate({job=\"traefik-access\", environment=\"$environment\", router=~\"online@file|wiki@file|wetfish-home@file\", status=~\"5..\"}[2m]))",
+          "legendFormat": "5xx", "queryType": "range"
+        }
+      ]
+    },
+
+    {
+      "id": 10,
+      "title": "Bandwidth (bytes/s)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 14, "w": 12, "h": 7 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (router) (rate({job=\"traefik-access\", environment=\"$environment\", router=~\"online@file|wiki@file|wetfish-home@file\"} | json | unwrap DownstreamContentSize [2m]))",
+          "legendFormat": "{{router}}",
+          "queryType": "range"
+        }
+      ]
+    },
+
+    {
+      "id": 300,
+      "title": "Top Paths & Clients",
+      "type": "row",
+      "gridPos": { "x": 0, "y": 21, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+
+    {
+      "id": 11,
+      "title": "Top 20 Requested Paths (1h)",
+      "type": "table",
+      "gridPos": { "x": 0, "y": 22, "w": 8, "h": 10 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": {
+        "sortBy": [{ "displayName": "Requests", "desc": true }],
+        "footer": { "show": false }
+      },
+      "fieldConfig": {
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Requests" }, "properties": [{ "id": "custom.width", "value": 80 }] }
+        ]
+      },
+      "transformations": [
+        { "id": "organize", "options": { "renameByName": { "Value": "Requests", "RequestPath": "Path" } } }
+      ],
+      "targets": [
+        {
+          "expr": "topk(20, sum by (RequestPath) (count_over_time({job=\"traefik-access\", environment=\"$environment\", router=~\"online@file|wiki@file|wetfish-home@file\"} | json [1h])))",
+          "legendFormat": "{{RequestPath}}",
+          "queryType": "instant"
+        }
+      ]
+    },
+
+    {
+      "id": 12,
+      "title": "Top 20 Clients by Requests (1h)",
+      "type": "table",
+      "gridPos": { "x": 8, "y": 22, "w": 8, "h": 10 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": {
+        "sortBy": [{ "displayName": "Requests", "desc": true }]
+      },
+      "transformations": [
+        { "id": "organize", "options": { "renameByName": { "Value": "Requests", "ClientHost": "Client IP" } } }
+      ],
+      "targets": [
+        {
+          "expr": "topk(20, sum by (ClientHost) (count_over_time({job=\"traefik-access\", environment=\"$environment\", router=~\"online@file|wiki@file|wetfish-home@file\"} | json [1h])))",
+          "legendFormat": "{{ClientHost}}",
+          "queryType": "instant"
+        }
+      ]
+    },
+
+    {
+      "id": 13,
+      "title": "Top Clients — 4xx/5xx Errors (1h)",
+      "type": "table",
+      "gridPos": { "x": 16, "y": 22, "w": 8, "h": 10 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": {
+        "sortBy": [{ "displayName": "Errors", "desc": true }]
+      },
+      "transformations": [
+        { "id": "organize", "options": { "renameByName": { "Value": "Errors", "ClientHost": "Client IP" } } }
+      ],
+      "targets": [
+        {
+          "expr": "topk(20, sum by (ClientHost) (count_over_time({job=\"traefik-access\", environment=\"$environment\", router=~\"online@file|wiki@file|wetfish-home@file\", status=~\"[45]..\"}  | json [1h])))",
+          "legendFormat": "{{ClientHost}}",
+          "queryType": "instant"
+        }
+      ]
+    },
+
+    {
+      "id": 400,
+      "title": "Host Infrastructure",
+      "type": "row",
+      "gridPos": { "x": 0, "y": 32, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+
+    {
+      "id": 14,
+      "title": "CPU Usage %",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 33, "w": 8, "h": 7 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 90 }
+            ]
+          },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\", project=\"web-services\", environment=\"$environment\"}[2m])) * 100)",
+          "legendFormat": "{{instance}}"
+        }
+      ]
+    },
+
+    {
+      "id": 15,
+      "title": "Memory Usage %",
+      "type": "timeseries",
+      "gridPos": { "x": 8, "y": 33, "w": 8, "h": 7 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 * (1 - (node_memory_MemAvailable_bytes{project=\"web-services\", environment=\"$environment\"} / node_memory_MemTotal_bytes{project=\"web-services\", environment=\"$environment\"}))",
+          "legendFormat": "{{instance}}"
+        }
+      ]
+    },
+
+    {
+      "id": 16,
+      "title": "Disk Usage % (root + data mounts)",
+      "type": "bargauge",
+      "gridPos": { "x": 16, "y": 33, "w": 8, "h": 7 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "displayMode": "gradient"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 85 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 * (1 - (node_filesystem_avail_bytes{project=\"web-services\", environment=\"$environment\", fstype!~\"tmpfs|efivarfs\", mountpoint=~\"/|/mnt.*|/opt.*\"} / node_filesystem_size_bytes{project=\"web-services\", environment=\"$environment\", fstype!~\"tmpfs|efivarfs\", mountpoint=~\"/|/mnt.*|/opt.*\"}))",
+          "legendFormat": "{{instance}} {{mountpoint}}"
+        }
+      ]
+    },
+
+    {
+      "id": 17,
+      "title": "Network Traffic (bytes/s)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 40, "w": 12, "h": 7 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": { "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(node_network_receive_bytes_total{project=\"web-services\", environment=\"$environment\", device=\"eth0\"}[2m])",
+          "legendFormat": "{{instance}} rx"
+        },
+        {
+          "expr": "rate(node_network_transmit_bytes_total{project=\"web-services\", environment=\"$environment\", device=\"eth0\"}[2m])",
+          "legendFormat": "{{instance}} tx"
+        }
+      ]
+    },
+
+    {
+      "id": 500,
+      "title": "Live Logs",
+      "type": "row",
+      "gridPos": { "x": 0, "y": 47, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+
+    {
+      "id": 18,
+      "title": "Recent Errors (4xx / 5xx)",
+      "type": "logs",
+      "gridPos": { "x": 0, "y": 48, "w": 24, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": {
+        "dedupStrategy": "none",
+        "showLabels": false,
+        "wrapLogMessage": false,
+        "prettifyLogMessage": true,
+        "enableLogDetails": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "expr": "{job=\"traefik-access\", environment=\"$environment\", router=~\"online@file|wiki@file|wetfish-home@file\", status=~\"[45]..\"}",
+          "queryType": "range"
+        }
+      ]
+    }
+
+  ],
+  "schemaVersion": 36
+}
