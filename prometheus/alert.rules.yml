@@ -160,6 +160,75 @@ groups:
           description: "backup_last_success_timestamp not present in node_exporter metrics. Backup script may never have run or textfile collector is misconfigured."
           runbook: "1) SSH to prod 2) Check: `cat /var/lib/node_exporter/textfile_collector/backup.prom` 3) Verify node_exporter flag: `systemctl cat node_exporter`"
 
+      - alert: WebServicesHighErrorRate
+        expr: |
+          sum by (router, environment) (
+            rate(traefik_router_requests_total{project="web-services", code=~"5.."}[5m])
+          )
+          /
+          sum by (router, environment) (
+            rate(traefik_router_requests_total{project="web-services", code!~"4.."}[5m])
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          project: web-services
+        annotations:
+          summary: "High 5xx error rate on {{ $labels.router }} ({{ $labels.environment }})"
+          description: "{{ $value | humanizePercentage }} of requests to {{ $labels.router }} are returning 5xx errors."
+          grafana_url: "http://localhost:3030/d/web-services"
+          runbook: "1) Check service logs in Loki 2) Verify container is running on vultr-prod 3) Check for recent deployments 4) Inspect Traefik dashboard"
+
+      - alert: WebServicesHighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum by (router, environment, le) (
+              rate(traefik_router_request_duration_seconds_bucket{project="web-services"}[5m])
+            )
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+          project: web-services
+        annotations:
+          summary: "High latency on {{ $labels.router }} ({{ $labels.environment }})"
+          description: "P95 latency is {{ $value | printf \"%.2f\" }}s on {{ $labels.router }}. Threshold: 2s."
+          grafana_url: "http://localhost:3030/d/web-services"
+          runbook: "1) Check service logs for slow queries or errors 2) Check node CPU/memory 3) Look for upstream dependency issues"
+
+      - alert: WebServicesTraefikDown
+        expr: up{job="web-services-traefik"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          project: web-services
+        annotations:
+          summary: "Traefik metrics unreachable on {{ $labels.environment }}"
+          description: "Cannot scrape Traefik on {{ $labels.instance }}. All web-services routing visibility is lost."
+          runbook: "1) SSH to {{ $labels.instance }} 2) Check Traefik container: `docker ps | grep traefik` 3) Verify metrics port 8082 is exposed 4) Check Traefik logs"
+
+      - alert: WebServicesTLSExpiringSoon
+        expr: (traefik_tls_certs_not_after{project="web-services"} - time()) / 86400 < 14
+        for: 1h
+        labels:
+          severity: warning
+          project: web-services
+        annotations:
+          summary: "TLS cert expiring in {{ $value | printf \"%.0f\" }} days for {{ $labels.sans }}"
+          description: "Certificate for {{ $labels.sans }} expires in {{ $value | printf \"%.0f\" }} days. Check ACME renewal."
+          runbook: "1) Check Traefik ACME logs 2) Verify domain DNS is correct 3) Check Let's Encrypt rate limits 4) Manual renewal: restart Traefik"
+
+      - alert: WebServicesTLSExpired
+        expr: (traefik_tls_certs_not_after{project="web-services"} - time()) / 86400 < 0
+        for: 5m
+        labels:
+          severity: critical
+          project: web-services
+        annotations:
+          summary: "TLS cert EXPIRED for {{ $labels.sans }}"
+          description: "Certificate for {{ $labels.sans }} has expired. Users will see security warnings."
+          runbook: "1) Immediately check Traefik ACME config 2) Force cert renewal or swap to manual cert 3) Verify DNS and HTTP-01 challenge path"
+
   - name: andon-alert-otel
     rules:
       - alert: AndonAlertHighLatency
