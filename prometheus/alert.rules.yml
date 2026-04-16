@@ -196,16 +196,16 @@ groups:
           grafana_url: "http://localhost:3030/d/web-services"
           runbook: "1) Check service logs for slow queries or errors 2) Check node CPU/memory 3) Look for upstream dependency issues"
 
-      - alert: WebServicesTraefikDown
-        expr: up{job="web-services-traefik"} == 0
-        for: 2m
-        labels:
-          severity: critical
-          project: web-services
-        annotations:
-          summary: "Traefik metrics unreachable on {{ $labels.environment }}"
-          description: "Cannot scrape Traefik on {{ $labels.instance }}. All web-services routing visibility is lost."
-          runbook: "1) SSH to {{ $labels.instance }} 2) Check Traefik container: `docker ps | grep traefik` 3) Verify metrics port 8082 is exposed 4) Check Traefik logs"
+      # - alert: WebServicesTraefikDown  # disabled: staging Vultr firewall blocks port 8082
+      #   expr: up{job="web-services-traefik"} == 0
+      #   for: 2m
+      #   labels:
+      #     severity: critical
+      #     project: web-services
+      #   annotations:
+      #     summary: "Traefik metrics unreachable on {{ $labels.environment }}"
+      #     description: "Cannot scrape Traefik on {{ $labels.instance }}. All web-services routing visibility is lost."
+      #     runbook: "1) SSH to {{ $labels.instance }} 2) Check Traefik container: `docker ps | grep traefik` 3) Verify metrics port 8082 is exposed 4) Check Traefik logs"
 
       - alert: WebServicesTLSExpiringSoon
         expr: (traefik_tls_certs_not_after{project="web-services"} - time()) / 86400 < 14
