@@ -36,7 +36,7 @@ groups:
           runbook: "1) SSH to host 2) Run `df -h` and `du -sh /var/log/* | sort -rh | head` 3) Clean old logs/containers: `docker system prune` 4) Expand volume if recurring"
 
       - alert: InstanceDown
-        expr: up == 0
+        expr: up{job!~"factory-mysql|factory-redis|factory-nginx|factory-staging-node|factory-prod-node|web-services-node|web-services-traefik|prometheus"} == 0
         for: 1m
         labels:
           severity: critical
@@ -127,7 +127,7 @@ groups:
   - name: web-services
     rules:
       - alert: WebServicesNodeDown
-        expr: up{job="prod-node"} == 0
+        expr: up{job="web-services-node"} == 0
         for: 2m
         labels:
           severity: critical
@@ -139,7 +139,7 @@ groups:
           runbook: "1) Check Vultr control panel 2) Try SSH access 3) Check for host-level issues 4) Failover if available 5) Escalate to infra team"
 
       - alert: BackupStale
-        expr: time() - backup_last_success_timestamp{job="prod-node"} > 28800
+        expr: time() - backup_last_success_timestamp{job="web-services-node"} > 28800
         for: 10m
         labels:
           severity: critical
@@ -150,7 +150,7 @@ groups:
           runbook: "1) SSH to prod 2) Check cron: `crontab -l` 3) Check logs: `tail -50 /var/log/backups.log` 4) Run manually: `/opt/web-services/util/improved-backups.sh` 5) Check S3 for recent objects"
 
       - alert: BackupMetricMissing
-        expr: absent(backup_last_success_timestamp{job="prod-node"})
+        expr: absent(backup_last_success_timestamp{job="web-services-node"})
         for: 30m
         labels:
           severity: warning
