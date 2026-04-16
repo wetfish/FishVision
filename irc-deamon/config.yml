@@ -10,7 +10,7 @@ irc_nickname_password: myNickServPassword
 irc_realname: "Prometheus Alert Bot"
 
 irc_channels:
-  - name: "#botspam"
+  - name: "#alerts"
 
 alert_buffer_size: 2048
 msg_once_per_alert_group: no

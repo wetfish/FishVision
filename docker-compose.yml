@@ -199,7 +199,7 @@ services:
       IRC_USE_TLS: "true"
       IRC_NICK: "fishvision"
       IRC_NICKSERV_PASS: ""
-      IRC_CHANNEL: "#botspam"
+      IRC_CHANNEL: "#alerts"
       ALERT_BOT_NICK: "alertbot"
       OLLAMA_URL: "http://ollama:11434"
       OLLAMA_MODEL: "qwen2.5:3b"
