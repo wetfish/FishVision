@@ -1,4 +1,58 @@
 groups:
+  - name: observability-stack
+    rules:
+      - alert: LokiDown
+        expr: up{job="loki"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Loki is DOWN"
+          description: "Loki log aggregation is unreachable. Log ingestion and querying are unavailable."
+          runbook: "1) Check container: `docker ps | grep loki` 2) Check logs: `docker logs loki --tail 50` 3) Check disk: `df -h` (Loki fills disk when retention is misconfigured) 4) Restart: `docker compose restart loki`"
+
+      - alert: TempoDown
+        expr: up{job="tempo"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Tempo is DOWN"
+          description: "Tempo trace backend is unreachable. Trace ingestion and spanmetrics are unavailable. OTel-based alerts will stop firing."
+          runbook: "1) Check container: `docker ps | grep tempo` 2) Check logs: `docker logs tempo --tail 50` 3) Restart: `docker compose restart tempo`"
+
+      - alert: AlertmanagerDown
+        expr: up{job="alertmanager"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Alertmanager is DOWN"
+          description: "Alertmanager is unreachable. No alerts are being routed or delivered to IRC."
+          runbook: "1) Check container: `docker ps | grep alertmanager` 2) Check logs: `docker logs alertmanager --tail 50` 3) Restart: `docker compose restart alertmanager`"
+
+      - alert: LokiHighIngestionRate
+        expr: rate(loki_distributor_bytes_received_total[5m]) > 5 * 1024 * 1024
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Loki ingestion rate above 5MB/s"
+          description: "Loki is ingesting {{ $value | humanize1024 }}B/s — unusually high. May indicate a log flood or misconfigured scrape."
+          runbook: "1) Check Loki targets in Grafana Explore 2) Identify high-volume container: query by `container` label 3) Add drop rules in Promtail if log spam"
+
+      - alert: LokiDiskUsageHigh
+        expr: |
+          (node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"})
+          / node_filesystem_size_bytes{mountpoint="/"} * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Root disk above 80% — Loki retention may not be keeping up"
+          description: "Disk at {{ $value | printf \"%.1f\" }}%. Loki chunks are stored on this volume. Check retention is working."
+          runbook: "1) Check `df -h` 2) Check Loki compactor logs: `docker logs loki | grep compactor` 3) Manually trigger compaction or lower retention_period"
+
   - name: server-health
     rules:
       - alert: HighCPUUsage

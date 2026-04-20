@@ -9,7 +9,8 @@ clients:
   - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
-  # Collect Docker container logs
+  # Collect Docker container logs (dedi-prod only)
+  # For vultr-prod Traefik/app logs, a Promtail agent on vultr-prod is needed
   - job_name: docker
     docker_sd_configs:
       - host: unix:///var/run/docker.sock
@@ -22,6 +23,12 @@ scrape_configs:
         target_label: stream
       - source_labels: ["__meta_docker_container_label_com_docker_compose_service"]
         target_label: service
+    pipeline_stages:
+      # Extract log level from common formats (Prometheus/Loki/Tempo/Grafana)
+      - regex:
+          expression: '(level|lvl|severity)=(?P<level>\w+)'
+      - labels:
+          level:
 
   # Collect system logs
   - job_name: system

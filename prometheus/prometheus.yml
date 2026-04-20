@@ -32,6 +32,7 @@ scrape_configs:
     static_configs:
       - targets: ["144.202.63.236:9100"]
         labels:
+          environment: production
           project: web-services
 
   # --- Factory nodes ---
@@ -96,6 +97,19 @@ scrape_configs:
         labels:
           environment: production
           project: web-services
+
+  # --- Observability stack self-monitoring ---
+  - job_name: "loki"
+    static_configs:
+      - targets: ["loki:3100"]
+
+  - job_name: "tempo"
+    static_configs:
+      - targets: ["tempo:3200"]
+
+  - job_name: "alertmanager"
+    static_configs:
+      - targets: ["alertmanager:9093"]
 
   # --- Web-Services-K8s Prometheus federation ---
   # Uncomment when web-services-k8s Prometheus federation endpoint is available
