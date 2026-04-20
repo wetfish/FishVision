@@ -160,6 +160,21 @@ groups:
           description: "backup_last_success_timestamp not present in node_exporter metrics. Backup script may never have run or textfile collector is misconfigured."
           runbook: "1) SSH to prod 2) Check: `cat /var/lib/node_exporter/textfile_collector/backup.prom` 3) Verify node_exporter flag: `systemctl cat node_exporter`"
 
+      - alert: WebServicesBotFlood
+        expr: |
+          sum by (router, environment) (
+            rate(traefik_router_requests_total{project="web-services", router!~"acme-http@internal|prometheus@internal|web-to-websecure@internal"}[5m])
+          ) > 20
+        for: 3m
+        labels:
+          severity: critical
+          project: web-services
+        annotations:
+          summary: "Bot flood detected on {{ $labels.router }} ({{ $labels.environment }})"
+          description: "{{ $labels.router }} is receiving {{ $value | printf \"%.1f\" }} req/s (threshold: 20). Likely bot/scraper flood — check for worker saturation and source IPs."
+          grafana_url: "http://localhost:3030/d/web-services"
+          runbook: "1) Run traefik-traffic-analysis.py on live access log to identify top IPs/subnets 2) Check PHP-FPM worker saturation: `docker exec online-php curl -s localhost/fpm-status` 3) Block flood source in Cloudflare WAF or Traefik middleware 4) If workers stuck: kill with `docker exec online-php kill $(docker exec online-php ps aux | awk '/php-fpm: pool/ && !/master/ {print $2}')` 5) Check for repeat ASNs (ByteDance 43.172.0.0/14 — see incidents 2026-04-17, 2026-04-20)"
+
       - alert: WebServicesHighErrorRate
         expr: |
           sum by (router, environment) (
