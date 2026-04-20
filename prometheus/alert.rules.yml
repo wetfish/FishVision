@@ -246,7 +246,7 @@ groups:
 
       - alert: AndonAlertHighErrorRate
         expr: sum(rate(traces_spanmetrics_calls_total{service="andon-alert", status_code="STATUS_CODE_ERROR"}[5m])) / sum(rate(traces_spanmetrics_calls_total{service="andon-alert"}[5m])) > 0.05
-        for: 5m
+        for: 10m
         labels:
           severity: critical
           project: factory
@@ -255,7 +255,7 @@ groups:
           description: "{{ $value | humanizePercentage }} of requests are failing. Users are seeing errors."
           grafana_url: "http://localhost:3030/d/andon-alert-observability"
           logs_url: "http://localhost:3030/explore?orgId=1&left={\"datasource\":\"loki\",\"queries\":[{\"expr\":\"{container=\\\"laravel-app\\\"}|=\\\"ERROR\\\"\"}]}"
-          runbook: "1) Check error logs in Loki 2) Look for common exception patterns 3) Check if MySQL/Redis are healthy 4) Rollback recent deployment if correlated"
+          runbook: "1) Check error logs in Loki 2) Look for common exception patterns 3) Check if MySQL/Redis are healthy 4) Rollback recent deployment if correlated 5) If no real errors found: check Tempo for spans from non-prod hosts (staging traces polluting prod Tempo — see incident-2026-04-20-andon-alert-false-positive.md)"
 
       - alert: AndonAlertNoTraces
         expr: absent(traces_spanmetrics_calls_total{service="andon-alert"}) == 1
