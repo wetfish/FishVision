@@ -6,7 +6,7 @@ irc_port: 6697
 use_tls: true
 irc_verify_ssl: yes
 irc_nickname: alertbot
-irc_nickname_password: myNickServPassword
+irc_nickname_password: ${IRC_NICKSERV_PASS}
 irc_realname: "Prometheus Alert Bot"
 
 irc_channels:

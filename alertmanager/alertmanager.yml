@@ -1,25 +1,56 @@
 global:
   resolve_timeout: 5m
 
-# FOR USE IN N8N AGENTS
-#receivers:
-#  - name: "n8n-webhook"
-#    webhook_configs:
-#      - url: "http://172.17.0.1:5678/webhook-test/36144696-7628-41c8-8c97-f06f03f4a5e3"
-#        send_resolved: true # sends resolved alerts too (optional)
-
-#route:
-#  receiver: "n8n-webhook"
-
 route:
-  receiver: "irc-relay"
-  group_by: ["alertname", "instance"]
-  group_wait: 10s
-  group_interval: 1m
-  repeat_interval: 3h
+  receiver: irc-relay
+  group_by: [alertname, instance, project]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    # Warnings repeat less frequently
+    - matchers:
+        - severity = warning
+      repeat_interval: 12h
+
+inhibit_rules:
+  # Suppress service-level alerts when the whole node is down
+  - source_matchers:
+      - alertname = InstanceDown
+    target_matchers:
+      - project = factory
+    equal: [instance]
+
+  - source_matchers:
+      - alertname = WebServicesNodeDown
+    target_matchers:
+      - project = web-services
+    equal: [environment]
+
+  # Suppress worker saturation alert when a bot flood is already firing
+  # (saturation is a symptom of the flood, not a separate incident)
+  - source_matchers:
+      - alertname = WebServicesBotFlood
+    target_matchers:
+      - alertname = WebServicesWorkerSaturation
+    equal: [router, environment]
+
+  # Suppress high error rate when worker saturation is already firing
+  - source_matchers:
+      - alertname = WebServicesWorkerSaturation
+    target_matchers:
+      - alertname = WebServicesHighErrorRate
+    equal: [router, environment]
 
 receivers:
-  - name: "irc-relay"
+  - name: irc-relay
     webhook_configs:
-      - url: "http://irc-relay:8010/alerts"
+      - url: http://irc-relay:8010/alerts
         send_resolved: true
+
+# FOR USE IN N8N AGENTS
+#receivers:
+#  - name: n8n-webhook
+#    webhook_configs:
+#      - url: http://172.17.0.1:5678/webhook-test/36144696-7628-41c8-8c97-f06f03f4a5e3
+#        send_resolved: true

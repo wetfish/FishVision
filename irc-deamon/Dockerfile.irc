@@ -3,5 +3,8 @@ WORKDIR /app
 RUN go install github.com/google/alertmanager-irc-relay@latest
 
 FROM debian:stable-slim
+RUN apt-get update && apt-get install -y --no-install-recommends gettext-base && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /go/bin/alertmanager-irc-relay /usr/local/bin/alertmanager-irc-relay
-ENTRYPOINT ["alertmanager-irc-relay"]
+
+# Render config template at startup so IRC_NICKSERV_PASS is substituted from env
+ENTRYPOINT ["/bin/sh", "-c", "envsubst < /etc/alertmanager-irc-relay/config.yml > /tmp/config.yml && exec alertmanager-irc-relay --config /tmp/config.yml"]

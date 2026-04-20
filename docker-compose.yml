@@ -75,8 +75,8 @@ services:
     ports:
       - "3030:3000"
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:?GF_SECURITY_ADMIN_PASSWORD must be set in .env}
       GF_LOG_LEVEL: info
     depends_on:
       - prometheus
@@ -197,9 +197,10 @@ services:
     container_name: irc-relay
     ports:
       - "8010:8010"
+    environment:
+      IRC_NICKSERV_PASS: ${IRC_NICKSERV_PASS:-}
     volumes:
       - ./irc-deamon/config.yml:/etc/alertmanager-irc-relay/config.yml:ro
-    command: ["--config", "/etc/alertmanager-irc-relay/config.yml"]
     restart: unless-stopped
     depends_on:
       - alertmanager
@@ -247,7 +248,7 @@ services:
       IRC_PORT: "6697"
       IRC_USE_TLS: "true"
       IRC_NICK: "fishvision"
-      IRC_NICKSERV_PASS: ""
+      IRC_NICKSERV_PASS: ${IRC_NICKSERV_PASS:-}
       IRC_CHANNEL: "#alerts"
       ALERT_BOT_NICK: "alertbot"
       OLLAMA_URL: "http://ollama:11434"
