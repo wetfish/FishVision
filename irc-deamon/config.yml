@@ -4,7 +4,7 @@ http_port: 8010
 irc_host: irc.wetfish.net
 irc_port: 6697
 use_tls: true
-irc_verify_ssl: no
+irc_verify_ssl: yes
 irc_nickname: alertbot
 irc_nickname_password: myNickServPassword
 irc_realname: "Prometheus Alert Bot"

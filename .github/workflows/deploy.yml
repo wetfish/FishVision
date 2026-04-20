@@ -5,9 +5,13 @@ on:
     branches: [main]
 
 jobs:
+  validate:
+    uses: ./.github/workflows/validate.yml
+
   deploy:
     runs-on: ubuntu-latest
     environment: production
+    needs: validate
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,6 +43,8 @@ jobs:
           rsync -az --delete \
             --exclude='.git' \
             --exclude='*-data/' \
+            --exclude='loki-*/' \
+            --exclude='tempo-data/' \
             --exclude='wal/' \
             --exclude='*.bak' \
             -e "ssh -i ~/.ssh/id_ed25519" \
@@ -60,7 +66,7 @@ jobs:
         if: steps.changes.outputs.grafana == 'true'
         run: |
           ssh -i ~/.ssh/id_ed25519 root@144.48.106.242 \
-            'curl -sf -u admin:$GRAFANA_ADMIN_PASSWORD -X POST http://localhost:3030/api/admin/provisioning/dashboards/reload && echo "grafana dashboards reloaded"'
+            'curl -sf -u "admin:${GRAFANA_ADMIN_PASSWORD}" -X POST http://localhost:3030/api/admin/provisioning/dashboards/reload && echo "grafana dashboards reloaded"'
 
       - name: Restart Loki
         if: steps.changes.outputs.loki == 'true'
@@ -79,3 +85,24 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 root@144.48.106.242 \
             'cd /opt/FishVision && docker compose up -d --remove-orphans && echo "stack updated"'
+
+      - name: Health check
+        run: |
+          ssh -i ~/.ssh/id_ed25519 root@144.48.106.242 'bash -s' << 'EOF'
+            fail=0
+            check() {
+              local name=$1 url=$2
+              if curl -sf "$url" > /dev/null 2>&1; then
+                echo "✓ $name"
+              else
+                echo "✗ $name FAILED ($url)"
+                fail=1
+              fi
+            }
+            check "Prometheus"   http://localhost:9090/-/ready
+            check "Alertmanager" http://localhost:9093/-/ready
+            check "Grafana"      http://localhost:3030/api/health
+            check "Loki"         http://localhost:3100/ready
+            check "Tempo"        http://localhost:3200/ready
+            exit $fail
+          EOF

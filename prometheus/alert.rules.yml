@@ -160,6 +160,21 @@ groups:
           description: "backup_last_success_timestamp not present in node_exporter metrics. Backup script may never have run or textfile collector is misconfigured."
           runbook: "1) SSH to prod 2) Check: `cat /var/lib/node_exporter/textfile_collector/backup.prom` 3) Verify node_exporter flag: `systemctl cat node_exporter`"
 
+      - alert: WebServicesWorkerSaturation
+        expr: |
+          sum by (router, environment) (
+            rate(traefik_router_requests_total{project="web-services", code="504"}[5m])
+          ) > 0.5
+        for: 2m
+        labels:
+          severity: critical
+          project: web-services
+        annotations:
+          summary: "Gateway timeouts on {{ $labels.router }} — likely PHP-FPM worker saturation"
+          description: "{{ $value | printf \"%.1f\" }} req/s returning 504 on {{ $labels.router }}. Traefik is timing out waiting for upstream — PHP-FPM workers are likely all stuck."
+          grafana_url: "http://localhost:3030/d/web-services"
+          runbook: "1) Check worker state: `docker exec online-php ps aux | grep php-fpm` 2) Kill stuck workers: `docker exec online-php kill $(docker exec online-php ps aux | awk '/php-fpm: pool/ && !/master/ && $8==\"R\" {print $2}')` 3) Check gethostbyaddr: verify SMF hostname lookup is disabled in admin panel (Admin → Server Settings → Security → Enable hostname lookup → Disabled) 4) Check resolv.conf timeout: `docker exec online-php cat /etc/resolv.conf` — should have timeout:1 attempts:1 5) Check for bot flood (see WebServicesBotFlood alert)"
+
       - alert: WebServicesBotFlood
         expr: |
           sum by (router, environment) (
@@ -260,7 +275,10 @@ groups:
           runbook: "1) Check trace waterfall for slow spans 2) Look for DB query bottlenecks 3) Check Redis cache hit rate 4) Review recent deployments"
 
       - alert: AndonAlertHighErrorRate
-        expr: sum(rate(traces_spanmetrics_calls_total{service="andon-alert", status_code="STATUS_CODE_ERROR"}[5m])) / sum(rate(traces_spanmetrics_calls_total{service="andon-alert"}[5m])) > 0.05
+        expr: |
+          sum(rate(traces_spanmetrics_calls_total{service="andon-alert", status_code="STATUS_CODE_ERROR", span_kind="SPAN_KIND_SERVER"}[5m]))
+          /
+          sum(rate(traces_spanmetrics_calls_total{service="andon-alert", span_kind="SPAN_KIND_SERVER"}[5m])) > 0.05
         for: 10m
         labels:
           severity: critical
