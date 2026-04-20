@@ -2,8 +2,8 @@ groups:
   - name: server-health
     rules:
       - alert: HighCPUUsage
-        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
-        for: 5m
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 15m
         labels:
           severity: warning
         annotations:
@@ -183,10 +183,10 @@ groups:
         expr: |
           histogram_quantile(0.95,
             sum by (router, environment, le) (
-              rate(traefik_router_request_duration_seconds_bucket{project="web-services"}[5m])
+              rate(traefik_router_request_duration_seconds_bucket{project="web-services", router!="acme-http@internal"}[5m])
             )
           ) > 2
-        for: 5m
+        for: 10m
         labels:
           severity: warning
           project: web-services
@@ -196,16 +196,16 @@ groups:
           grafana_url: "http://localhost:3030/d/web-services"
           runbook: "1) Check service logs for slow queries or errors 2) Check node CPU/memory 3) Look for upstream dependency issues"
 
-      # - alert: WebServicesTraefikDown  # disabled: staging Vultr firewall blocks port 8082
-      #   expr: up{job="web-services-traefik"} == 0
-      #   for: 2m
-      #   labels:
-      #     severity: critical
-      #     project: web-services
-      #   annotations:
-      #     summary: "Traefik metrics unreachable on {{ $labels.environment }}"
-      #     description: "Cannot scrape Traefik on {{ $labels.instance }}. All web-services routing visibility is lost."
-      #     runbook: "1) SSH to {{ $labels.instance }} 2) Check Traefik container: `docker ps | grep traefik` 3) Verify metrics port 8082 is exposed 4) Check Traefik logs"
+      - alert: WebServicesTraefikDown
+        expr: up{job="web-services-traefik"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          project: web-services
+        annotations:
+          summary: "Traefik metrics unreachable on {{ $labels.environment }}"
+          description: "Cannot scrape Traefik on {{ $labels.instance }}. All web-services routing visibility is lost."
+          runbook: "1) SSH to {{ $labels.instance }} 2) Check Traefik container: `docker ps | grep traefik` 3) Verify metrics port 8082 is exposed 4) Check Traefik logs"
 
       - alert: WebServicesTLSExpiringSoon
         expr: (traefik_tls_certs_not_after{project="web-services"} - time()) / 86400 < 14
@@ -252,7 +252,7 @@ groups:
           project: factory
         annotations:
           summary: "AndonAlert error rate above 5%"
-          description: "{{ $value | printf \"%.1f\" }}% of requests are failing. Users are seeing errors."
+          description: "{{ $value | humanizePercentage }} of requests are failing. Users are seeing errors."
           grafana_url: "http://localhost:3030/d/andon-alert-observability"
           logs_url: "http://localhost:3030/explore?orgId=1&left={\"datasource\":\"loki\",\"queries\":[{\"expr\":\"{container=\\\"laravel-app\\\"}|=\\\"ERROR\\\"\"}]}"
           runbook: "1) Check error logs in Loki 2) Look for common exception patterns 3) Check if MySQL/Redis are healthy 4) Rollback recent deployment if correlated"
