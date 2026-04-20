@@ -1,0 +1,47 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install promtool + amtool
+        run: |
+          PROM_VERSION=3.2.1
+          AM_VERSION=0.28.1
+
+          curl -sSL "https://github.com/prometheus/prometheus/releases/download/v${PROM_VERSION}/prometheus-${PROM_VERSION}.linux-amd64.tar.gz" \
+            | tar -xz --strip-components=1 -C /usr/local/bin prometheus-${PROM_VERSION}.linux-amd64/promtool
+
+          curl -sSL "https://github.com/prometheus/alertmanager/releases/download/v${AM_VERSION}/alertmanager-${AM_VERSION}.linux-amd64.tar.gz" \
+            | tar -xz --strip-components=1 -C /usr/local/bin alertmanager-${AM_VERSION}.linux-amd64/amtool
+
+      - name: Check alert rules
+        run: promtool check rules prometheus/alert.rules.yml
+
+      - name: Check alertmanager config
+        run: amtool check-config alertmanager/alertmanager.yml
+
+      - name: Check prometheus config
+        run: promtool check config prometheus/prometheus.yml
+
+      - name: Validate kustomize overlays
+        run: |
+          curl -sSL "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+
+          for overlay in k8s/overlays/*/; do
+            echo "=== Validating $overlay ==="
+            kustomize build "$overlay" > /dev/null
+          done
+
+          for overlay in k8s/factory/overlays/*/; do
+            echo "=== Validating $overlay ==="
+            kustomize build "$overlay" > /dev/null
+          done

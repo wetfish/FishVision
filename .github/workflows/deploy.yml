@@ -1,0 +1,81 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed paths
+        id: changes
+        run: |
+          CHANGED=$(git diff --name-only HEAD~1 HEAD)
+          echo "$CHANGED"
+
+          changed_in() { echo "$CHANGED" | grep -q "^$1"; }
+
+          echo "prometheus=$(changed_in 'prometheus/' && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "alertmanager=$(changed_in 'alertmanager/' && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "grafana=$(changed_in 'grafana/' && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "loki=$(changed_in 'loki/' && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "tempo=$(changed_in 'tempo/' && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "compose=$(changed_in 'docker-compose.yml' && echo true || echo false)" >> $GITHUB_OUTPUT
+
+      - name: Setup SSH
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_ed25519
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_ed25519
+          echo "${{ secrets.DEPLOY_HOST_KEY }}" > ~/.ssh/known_hosts
+
+      - name: Sync files to dedi-prod
+        run: |
+          rsync -az --delete \
+            --exclude='.git' \
+            --exclude='*-data/' \
+            --exclude='wal/' \
+            --exclude='*.bak' \
+            -e "ssh -i ~/.ssh/id_ed25519" \
+            . root@144.48.106.242:/opt/FishVision/
+
+      - name: Reload Prometheus
+        if: steps.changes.outputs.prometheus == 'true'
+        run: |
+          ssh -i ~/.ssh/id_ed25519 root@144.48.106.242 \
+            'curl -sf -X POST http://localhost:9090/-/reload && echo "prometheus reloaded"'
+
+      - name: Reload Alertmanager
+        if: steps.changes.outputs.alertmanager == 'true'
+        run: |
+          ssh -i ~/.ssh/id_ed25519 root@144.48.106.242 \
+            'curl -sf -X POST http://localhost:9093/-/reload && echo "alertmanager reloaded"'
+
+      - name: Reload Grafana dashboards
+        if: steps.changes.outputs.grafana == 'true'
+        run: |
+          ssh -i ~/.ssh/id_ed25519 root@144.48.106.242 \
+            'curl -sf -u admin:$GRAFANA_ADMIN_PASSWORD -X POST http://localhost:3030/api/admin/provisioning/dashboards/reload && echo "grafana dashboards reloaded"'
+
+      - name: Restart Loki
+        if: steps.changes.outputs.loki == 'true'
+        run: |
+          ssh -i ~/.ssh/id_ed25519 root@144.48.106.242 \
+            'cd /opt/FishVision && docker compose restart loki && echo "loki restarted"'
+
+      - name: Restart Tempo
+        if: steps.changes.outputs.tempo == 'true'
+        run: |
+          ssh -i ~/.ssh/id_ed25519 root@144.48.106.242 \
+            'cd /opt/FishVision && docker compose restart tempo && echo "tempo restarted"'
+
+      - name: Full stack update
+        if: steps.changes.outputs.compose == 'true'
+        run: |
+          ssh -i ~/.ssh/id_ed25519 root@144.48.106.242 \
+            'cd /opt/FishVision && docker compose up -d --remove-orphans && echo "stack updated"'
