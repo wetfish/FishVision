@@ -47,5 +47,5 @@ jobs:
 
           for overlay in k8s/factory/overlays/*/; do
             echo "=== Validating $overlay ==="
-            kustomize build --load-restrictor=LoadRestrictionsNone "$overlay" > /dev/null
+            kustomize build "$overlay" > /dev/null
           done
