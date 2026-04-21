@@ -39,6 +39,8 @@ data:
       http_listen_port: 9080
       grpc_listen_port: 0
 
+    expand_env: true
+
     positions:
       filename: /tmp/positions.yaml
 
@@ -57,9 +59,9 @@ data:
         static_configs:
           - targets: [localhost]
             labels:
-              environment: staging
+              environment: ${FACTORY_ENVIRONMENT}
               project: factory
-              __path__: /var/log/pods/factory-staging_*/*/*.log
+              __path__: /var/log/pods/factory-${FACTORY_ENVIRONMENT}_*/*/*.log
         pipeline_stages:
           - cri: {}
           - drop:
@@ -98,6 +100,9 @@ spec:
           image: grafana/promtail:2.8.2
           args:
             - -config.file=/etc/promtail/promtail.yaml
+          env:
+            - name: FACTORY_ENVIRONMENT
+              value: "staging"
           volumeMounts:
             - name: config
               mountPath: /etc/promtail

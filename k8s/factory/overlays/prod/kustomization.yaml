@@ -5,3 +5,8 @@ resources:
   - ../../base
 
 namespace: factory-production
+
+patches:
+  # otlp-patch.yaml patches factory-web/factory-worker which live in the factory repo.
+  # Apply it there: kubectl patch -k <factory-repo>/k8s/overlays/prod/ --patch-file otlp-patch.yaml
+  - path: promtail-env-patch.yaml

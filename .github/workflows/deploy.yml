@@ -31,6 +31,7 @@ jobs:
           echo "loki=$(changed_in 'loki/' && echo true || echo false)" >> $GITHUB_OUTPUT
           echo "tempo=$(changed_in 'tempo/' && echo true || echo false)" >> $GITHUB_OUTPUT
           echo "compose=$(changed_in 'docker-compose.yml' && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "factory_k8s=$(changed_in 'k8s/factory/' && echo true || echo false)" >> $GITHUB_OUTPUT
 
       - name: Setup SSH
         run: |
@@ -64,9 +65,11 @@ jobs:
 
       - name: Reload Grafana dashboards
         if: steps.changes.outputs.grafana == 'true'
+        env:
+          GRAFANA_PASS: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
         run: |
           ssh -i ~/.ssh/id_ed25519 root@144.48.106.242 \
-            'curl -sf -u "admin:${GRAFANA_ADMIN_PASSWORD}" -X POST http://localhost:3030/api/admin/provisioning/dashboards/reload && echo "grafana dashboards reloaded"'
+            "curl -sf -u \"admin:${GRAFANA_PASS}\" -X POST http://localhost:3030/api/admin/provisioning/dashboards/reload && echo 'grafana dashboards reloaded'"
 
       - name: Restart Loki
         if: steps.changes.outputs.loki == 'true'
@@ -85,6 +88,13 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 root@144.48.106.242 \
             'cd /opt/FishVision && docker compose up -d --remove-orphans && echo "stack updated"'
+
+      - name: Remind about factory k8s apply
+        if: steps.changes.outputs.factory_k8s == 'true'
+        run: |
+          echo "::warning::k8s/factory/ changed — apply manually to each cluster:"
+          echo "::warning::  kubectl apply -k k8s/factory/overlays/staging/ --context=<staging>"
+          echo "::warning::  kubectl apply -k k8s/factory/overlays/prod/ --context=<prod>"
 
       - name: Health check
         run: |

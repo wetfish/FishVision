@@ -7,4 +7,6 @@ resources:
 namespace: factory-staging
 
 patches:
-  - path: otlp-patch.yaml
+  # otlp-patch.yaml patches factory-web/factory-worker which live in the factory repo.
+  # Apply it there: kubectl patch -k <factory-repo>/k8s/overlays/staging/ --patch-file otlp-patch.yaml
+  - path: promtail-env-patch.yaml

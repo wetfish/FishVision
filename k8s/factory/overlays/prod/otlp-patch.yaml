@@ -14,7 +14,7 @@ spec:
             - name: OTEL_SERVICE_NAME
               value: "andon-alert"
             - name: OTEL_RESOURCE_ATTRIBUTES
-              value: "environment=staging,project=factory"
+              value: "environment=production,project=factory"
 
 ---
 apiVersion: apps/v1
@@ -32,4 +32,4 @@ spec:
             - name: OTEL_SERVICE_NAME
               value: "andon-alert-worker"
             - name: OTEL_RESOURCE_ATTRIBUTES
-              value: "environment=staging,project=factory"
+              value: "environment=production,project=factory"

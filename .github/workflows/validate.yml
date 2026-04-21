@@ -49,3 +49,21 @@ jobs:
             echo "=== Validating $overlay ==="
             kustomize build "$overlay" > /dev/null
           done
+
+      - name: Check for latest image tags
+        run: |
+          # Exclude fishvision/* images (built from this repo, no semver releases)
+          if grep -rn ':latest' k8s/ docker-compose.yml | grep -v 'fishvision/'; then
+            echo "ERROR: ':latest' upstream image tags found — pin all images to explicit versions"
+            exit 1
+          fi
+
+      - name: Validate docker-compose
+        run: GF_SECURITY_ADMIN_PASSWORD=ci-placeholder docker compose config --quiet
+
+      - name: Validate Grafana dashboard JSON
+        run: |
+          for f in grafana/dashboards/*.json; do
+            echo "=== Checking $f ==="
+            python3 -c "import json,sys; json.load(open('$f'))" || { echo "Invalid JSON: $f"; exit 1; }
+          done

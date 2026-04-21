@@ -20,7 +20,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: mysqld-exporter
-        image: prom/mysqld-exporter:latest
+        image: prom/mysqld-exporter:v0.15.1
         args:
         - --mysqld.address=factory-mysql:3306
         - --mysqld.username=laravel
@@ -55,7 +55,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: redis-exporter
-        image: oliver006/redis_exporter:latest
+        image: oliver006/redis_exporter:v1.62.0
         env:
         - name: REDIS_ADDR
           value: "redis://factory-redis:6379"
@@ -84,7 +84,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: nginx-exporter
-        image: nginx/nginx-prometheus-exporter:latest
+        image: nginx/nginx-prometheus-exporter:v1.3.0
         args:
         - -nginx.scrape-uri=http://factory-web/stub_status
         ports:

@@ -1,0 +1,13 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: promtail
+spec:
+  template:
+    spec:
+      containers:
+        - name: promtail
+          env:
+            - name: FACTORY_ENVIRONMENT
+              value: "staging"
