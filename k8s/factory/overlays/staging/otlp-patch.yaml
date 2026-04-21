@@ -1,0 +1,35 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: factory-web
+spec:
+  template:
+    spec:
+      containers:
+        - name: php-fpm
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://144.48.106.242:4318"
+            - name: OTEL_SERVICE_NAME
+              value: "factory"
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "environment=staging,project=factory"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: factory-worker
+spec:
+  template:
+    spec:
+      containers:
+        - name: php-fpm
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://144.48.106.242:4318"
+            - name: OTEL_SERVICE_NAME
+              value: "factory-worker"
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "environment=staging,project=factory"

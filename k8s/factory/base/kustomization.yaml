@@ -3,5 +3,6 @@ kind: Kustomization
 
 resources:
   - exporters.yaml
+  - promtail.yaml
 
 namespace: factory-staging
