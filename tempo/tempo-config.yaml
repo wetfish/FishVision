@@ -26,9 +26,13 @@ metrics_generator:
       source: tempo
   processor:
     service_graphs:
-      dimensions: []
+      dimensions:
+        - environment
+        - project
     span_metrics:
-      dimensions: []
+      dimensions:
+        - environment
+        - project
   storage:
     path: /tempo-data/generator/wal
     remote_write:
