@@ -1,5 +1,7 @@
 {
-  "annotations": { "list": [] },
+  "annotations": {
+    "list": []
+  },
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 2,
@@ -10,7 +12,9 @@
       "icon": "external link",
       "includeVars": false,
       "keepTime": true,
-      "tags": ["factory"],
+      "tags": [
+        "factory"
+      ],
       "title": "Factory Overview",
       "type": "dashboards"
     }
@@ -19,269 +23,512 @@
     {
       "type": "row",
       "title": "Service Health",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "collapsed": false
     },
     {
       "title": "Request Rate",
       "description": "Requests per second to andon-alert",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
-          "expr": "sum(rate(traces_spanmetrics_calls_total{service=\"andon-alert\", span_kind=\"SPAN_KIND_SERVER\"}[5m]))",
+          "expr": "sum(rate(traces_spanmetrics_calls_total{service=\"andon-alert\", environment=~\"$environment\", span_kind=\"SPAN_KIND_SERVER\"}[5m]))",
           "legendFormat": "req/s"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "green", "value": 0.01 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 0.01
+              }
             ]
           }
         }
       },
-      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } }
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "title": "P50 Latency",
       "description": "Median request latency",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, sum(rate(traces_spanmetrics_latency_bucket{service=\"andon-alert\", span_kind=\"SPAN_KIND_SERVER\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(traces_spanmetrics_latency_bucket{service=\"andon-alert\", environment=~\"$environment\", span_kind=\"SPAN_KIND_SERVER\"}[5m])) by (le))",
           "legendFormat": "p50"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "ms",
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 100 },
-              { "color": "red", "value": 500 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 500
+              }
             ]
           }
         }
       },
-      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } }
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "title": "P99 Latency",
       "description": "99th percentile request latency",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum(rate(traces_spanmetrics_latency_bucket{service=\"andon-alert\", span_kind=\"SPAN_KIND_SERVER\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(rate(traces_spanmetrics_latency_bucket{service=\"andon-alert\", environment=~\"$environment\", span_kind=\"SPAN_KIND_SERVER\"}[5m])) by (le))",
           "legendFormat": "p99"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "ms",
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 200 },
-              { "color": "red", "value": 1000 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 200
+              },
+              {
+                "color": "red",
+                "value": 1000
+              }
             ]
           }
         }
       },
-      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } }
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "title": "Error Rate",
       "description": "Laravel ERROR log entries per minute",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
-      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
       "targets": [
         {
-          "expr": "sum(rate({container=\"php-fpm\"} |= \"ERROR\" [5m])) * 60",
+          "expr": "sum(rate({environment=~\"$environment\", container=\"php-fpm\"} |= \"ERROR\" [5m])) * 60",
           "legendFormat": "errors/min"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 1 },
-              { "color": "red", "value": 10 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
             ]
           }
         }
       },
-      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } }
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "title": "Log Volume",
       "description": "Total log lines per minute",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
-      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
       "targets": [
         {
-          "expr": "sum(rate({container=~\"php-fpm|nginx\"}[5m])) * 60",
+          "expr": "sum(rate({environment=~\"$environment\", container=~\"php-fpm|nginx\"}[5m])) * 60",
           "legendFormat": "lines/min"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 100 },
-              { "color": "red", "value": 500 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 500
+              }
             ]
           }
         }
       },
-      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } }
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "title": "Total Requests",
       "description": "Total span calls in time range",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
-          "expr": "sum(increase(traces_spanmetrics_calls_total{service=\"andon-alert\", span_kind=\"SPAN_KIND_SERVER\"}[$__range]))",
+          "expr": "sum(increase(traces_spanmetrics_calls_total{service=\"andon-alert\", environment=~\"$environment\", span_kind=\"SPAN_KIND_SERVER\"}[$__range]))",
           "legendFormat": "total"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "steps": [
-              { "color": "blue", "value": null },
-              { "color": "green", "value": 1 }
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
             ]
           }
         }
       },
-      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
     },
-
     {
       "type": "row",
       "title": "Request Metrics (from Span Metrics)",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
       "collapsed": false
     },
     {
       "title": "Request Rate by Route",
       "description": "Requests per second broken down by span name",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
-          "expr": "sum by (span_name) (rate(traces_spanmetrics_calls_total{service=\"andon-alert\", span_kind=\"SPAN_KIND_SERVER\"}[5m]))",
+          "expr": "sum by (span_name) (rate(traces_spanmetrics_calls_total{service=\"andon-alert\", environment=~\"$environment\", span_kind=\"SPAN_KIND_SERVER\"}[5m]))",
           "legendFormat": "{{ span_name }}"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 20, "pointSize": 5, "showPoints": "auto" },
-          "color": { "mode": "palette-classic" }
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "pointSize": 5,
+            "showPoints": "auto"
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
         }
       },
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
-        "tooltip": { "mode": "multi" }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
       }
     },
     {
       "title": "Latency by Route (P50 / P95 / P99)",
       "description": "Request latency percentiles by span name",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, sum by (le, span_name) (rate(traces_spanmetrics_latency_bucket{service=\"andon-alert\", span_kind=\"SPAN_KIND_SERVER\"}[5m])))",
+          "expr": "histogram_quantile(0.50, sum by (le, span_name) (rate(traces_spanmetrics_latency_bucket{service=\"andon-alert\", environment=~\"$environment\", span_kind=\"SPAN_KIND_SERVER\"}[5m])))",
           "legendFormat": "{{ span_name }} p50"
         },
         {
-          "expr": "histogram_quantile(0.95, sum by (le, span_name) (rate(traces_spanmetrics_latency_bucket{service=\"andon-alert\", span_kind=\"SPAN_KIND_SERVER\"}[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le, span_name) (rate(traces_spanmetrics_latency_bucket{service=\"andon-alert\", environment=~\"$environment\", span_kind=\"SPAN_KIND_SERVER\"}[5m])))",
           "legendFormat": "{{ span_name }} p95"
         },
         {
-          "expr": "histogram_quantile(0.99, sum by (le, span_name) (rate(traces_spanmetrics_latency_bucket{service=\"andon-alert\", span_kind=\"SPAN_KIND_SERVER\"}[5m])))",
+          "expr": "histogram_quantile(0.99, sum by (le, span_name) (rate(traces_spanmetrics_latency_bucket{service=\"andon-alert\", environment=~\"$environment\", span_kind=\"SPAN_KIND_SERVER\"}[5m])))",
           "legendFormat": "{{ span_name }} p99"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "ms",
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10 },
-          "color": { "mode": "palette-classic" }
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
         }
       },
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
-        "tooltip": { "mode": "multi" }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
       }
     },
     {
       "title": "Latency Heatmap",
       "description": "Distribution of request latencies over time",
       "type": "heatmap",
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
-          "expr": "sum(increase(traces_spanmetrics_latency_bucket{service=\"andon-alert\", span_kind=\"SPAN_KIND_SERVER\"}[$__rate_interval])) by (le)",
+          "expr": "sum(increase(traces_spanmetrics_latency_bucket{service=\"andon-alert\", environment=~\"$environment\", span_kind=\"SPAN_KIND_SERVER\"}[$__rate_interval])) by (le)",
           "legendFormat": "{{ le }}",
           "format": "heatmap"
         }
       ],
       "options": {
         "calculate": false,
-        "color": { "scheme": "Turbo", "mode": "scheme" },
-        "yAxis": { "unit": "ms" },
+        "color": {
+          "scheme": "Turbo",
+          "mode": "scheme"
+        },
+        "yAxis": {
+          "unit": "ms"
+        },
         "cellGap": 1,
-        "tooltip": { "show": true }
+        "tooltip": {
+          "show": true
+        }
       }
     },
-
     {
       "type": "row",
       "title": "Distributed Traces",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
       "collapsed": false
     },
     {
       "title": "Recent Traces",
       "description": "Latest traces from andon-alert. Click a Trace ID to drill into spans.",
       "type": "table",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 23 },
-      "datasource": { "type": "tempo", "uid": "tempo" },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "datasource": {
+        "type": "tempo",
+        "uid": "tempo"
+      },
       "targets": [
         {
-          "datasource": { "type": "tempo", "uid": "tempo" },
+          "datasource": {
+            "type": "tempo",
+            "uid": "tempo"
+          },
           "queryType": "traceql",
           "query": "{resource.service.name=\"andon-alert\"}",
           "tableType": "traces",
@@ -290,72 +537,131 @@
       ],
       "options": {
         "showHeader": true,
-        "sortBy": [{ "displayName": "Start time", "desc": true }]
+        "sortBy": [
+          {
+            "displayName": "Start time",
+            "desc": true
+          }
+        ]
       },
       "fieldConfig": {
         "defaults": {},
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Duration" },
+            "matcher": {
+              "id": "byName",
+              "options": "Duration"
+            },
             "properties": [
-              { "id": "unit", "value": "ms" },
+              {
+                "id": "unit",
+                "value": "ms"
+              },
               {
                 "id": "thresholds",
                 "value": {
                   "mode": "absolute",
                   "steps": [
-                    { "color": "green", "value": null },
-                    { "color": "yellow", "value": 100 },
-                    { "color": "red", "value": 500 }
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 100
+                    },
+                    {
+                      "color": "red",
+                      "value": 500
+                    }
                   ]
                 }
               },
-              { "id": "custom.cellOptions", "value": { "type": "color-background" } }
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              }
             ]
           }
         ]
       }
     },
-
     {
       "type": "row",
       "title": "Application Logs",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 33 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      },
       "collapsed": false
     },
     {
       "title": "Log Volume by Container",
       "description": "Log line rate by container",
       "type": "timeseries",
-      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 34 },
-      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 34
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
       "targets": [
         {
-          "expr": "sum by (container) (rate({container=~\"php-fpm|nginx\"}[1m]))",
+          "expr": "sum by (container) (rate({environment=~\"$environment\", container=~\"php-fpm|nginx\"}[1m]))",
           "legendFormat": "{{ container }}"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "custom": { "drawStyle": "bars", "lineWidth": 1, "fillOpacity": 60, "stacking": { "mode": "normal" } },
-          "color": { "mode": "palette-classic" }
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 60,
+            "stacking": {
+              "mode": "normal"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
         }
       },
       "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi" }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
       }
     },
     {
       "title": "Laravel App Logs",
       "description": "Live log stream from the PHP-FPM container",
       "type": "logs",
-      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 40 },
-      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
       "targets": [
         {
-          "expr": "{container=\"php-fpm\"}",
+          "expr": "{environment=~\"$environment\", container=\"php-fpm\"}",
           "refId": "A"
         }
       ],
@@ -374,11 +680,19 @@
       "title": "Nginx Access Logs",
       "description": "Live log stream from the Nginx reverse proxy",
       "type": "logs",
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 52 },
-      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 52
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
       "targets": [
         {
-          "expr": "{container=\"nginx\"}",
+          "expr": "{environment=~\"$environment\", container=\"nginx\"}",
           "refId": "A"
         }
       ],
@@ -393,30 +707,49 @@
         "dedupStrategy": "none"
       }
     },
-
     {
       "type": "row",
       "title": "Error Analysis",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 60 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 60
+      },
       "collapsed": false
     },
     {
       "title": "Error Log Rate",
       "description": "Rate of ERROR-level log lines over time",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 61 },
-      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 61
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
       "targets": [
         {
-          "expr": "sum(rate({container=\"php-fpm\"} |= \"ERROR\" [1m]))",
+          "expr": "sum(rate({environment=~\"$environment\", container=\"php-fpm\"} |= \"ERROR\" [1m]))",
           "legendFormat": "errors/sec"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 30 },
-          "color": { "fixedColor": "red", "mode": "fixed" }
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 30
+          },
+          "color": {
+            "fixedColor": "red",
+            "mode": "fixed"
+          }
         }
       }
     },
@@ -424,20 +757,34 @@
       "title": "Span Error Rate",
       "description": "Errored spans from OTel trace data",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 61 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 61
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
-          "expr": "sum by (span_name) (rate(traces_spanmetrics_calls_total{service=\"andon-alert\", status_code=\"STATUS_CODE_ERROR\"}[5m]))",
+          "expr": "sum by (span_name) (rate(traces_spanmetrics_calls_total{service=\"andon-alert\", environment=~\"$environment\", status_code=\"STATUS_CODE_ERROR\"}[5m]))",
           "legendFormat": "{{ span_name }}"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 30 },
-          "color": { "mode": "palette-classic" },
-          "noValue": "0 — no span errors"
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 30
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "noValue": "0 \u2014 no span errors"
         }
       }
     },
@@ -445,11 +792,19 @@
       "title": "Error Logs",
       "description": "Only ERROR-level Laravel log entries",
       "type": "logs",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 69 },
-      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 69
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
       "targets": [
         {
-          "expr": "{container=\"php-fpm\"} |= \"ERROR\"",
+          "expr": "{environment=~\"$environment\", container=\"php-fpm\"} |= \"ERROR\"",
           "refId": "A"
         }
       ],
@@ -466,10 +821,53 @@
     }
   ],
   "schemaVersion": 39,
-  "tags": ["factory", "andon-alert", "observability", "opentelemetry"],
-  "templating": { "list": [] },
-  "time": { "from": "now-1h", "to": "now" },
+  "tags": [
+    "factory",
+    "andon-alert",
+    "observability",
+    "opentelemetry"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "hide": 0,
+        "includeAll": true,
+        "multi": false,
+        "name": "environment",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": false,
+            "text": "staging",
+            "value": "staging"
+          },
+          {
+            "selected": false,
+            "text": "production",
+            "value": "production"
+          }
+        ],
+        "query": "staging,production",
+        "skipUrlSync": false,
+        "type": "custom",
+        "label": "Environment"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
   "refresh": "30s",
-  "title": "Andon Alert — Observability",
+  "title": "Andon Alert \u2014 Observability",
   "uid": "andon-alert-observability"
 }

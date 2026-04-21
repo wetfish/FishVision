@@ -316,42 +316,45 @@ groups:
   - name: andon-alert-otel
     rules:
       - alert: AndonAlertHighLatency
-        expr: histogram_quantile(0.95, sum(rate(traces_spanmetrics_latency_bucket{service="andon-alert", span_kind="SPAN_KIND_SERVER"}[5m])) by (le)) > 500
+        expr: histogram_quantile(0.95, sum by (le, environment) (rate(traces_spanmetrics_latency_bucket{service="andon-alert", span_kind="SPAN_KIND_SERVER"}[5m]))) > 500
         for: 5m
         labels:
           severity: warning
           project: factory
+          environment: "{{ $labels.environment }}"
         annotations:
-          summary: "AndonAlert P95 latency above 500ms"
-          description: "P95 request latency is {{ $value | printf \"%.0f\" }}ms. Users are experiencing slow page loads."
-          grafana_url: "http://localhost:3030/d/andon-alert-observability"
+          summary: "AndonAlert P95 latency above 500ms ({{ $labels.environment }})"
+          description: "P95 request latency is {{ $value | printf \"%.0f\" }}ms on {{ $labels.environment }}. Users are experiencing slow page loads."
+          grafana_url: "http://localhost:3030/d/andon-alert-observability?var-environment={{ $labels.environment }}"
           logs_url: "http://localhost:3030/explore?orgId=1&left={\"datasource\":\"tempo\",\"queries\":[{\"queryType\":\"traceql\",\"query\":\"{resource.service.name=\\\"andon-alert\\\" && duration > 500ms}\"}]}"
           runbook: "1) Check trace waterfall for slow spans 2) Look for DB query bottlenecks 3) Check Redis cache hit rate 4) Review recent deployments"
 
       - alert: AndonAlertHighErrorRate
         expr: |
-          sum(rate(traces_spanmetrics_calls_total{service="andon-alert", status_code="STATUS_CODE_ERROR", span_kind="SPAN_KIND_SERVER"}[5m]))
+          sum by (environment) (rate(traces_spanmetrics_calls_total{service="andon-alert", status_code="STATUS_CODE_ERROR", span_kind="SPAN_KIND_SERVER"}[5m]))
           /
-          sum(rate(traces_spanmetrics_calls_total{service="andon-alert", span_kind="SPAN_KIND_SERVER"}[5m])) > 0.05
+          sum by (environment) (rate(traces_spanmetrics_calls_total{service="andon-alert", span_kind="SPAN_KIND_SERVER"}[5m])) > 0.05
         for: 10m
         labels:
           severity: critical
           project: factory
+          environment: "{{ $labels.environment }}"
         annotations:
-          summary: "AndonAlert error rate above 5%"
-          description: "{{ $value | humanizePercentage }} of requests are failing. Users are seeing errors."
-          grafana_url: "http://localhost:3030/d/andon-alert-observability"
-          logs_url: "http://localhost:3030/explore?orgId=1&left={\"datasource\":\"loki\",\"queries\":[{\"expr\":\"{container=\\\"laravel-app\\\"}|=\\\"ERROR\\\"\"}]}"
-          runbook: "1) Check error logs in Loki 2) Look for common exception patterns 3) Check if MySQL/Redis are healthy 4) Rollback recent deployment if correlated 5) If no real errors found: check Tempo for spans from non-prod hosts (staging traces polluting prod Tempo — see incident-2026-04-20-andon-alert-false-positive.md)"
+          summary: "AndonAlert error rate above 5% ({{ $labels.environment }})"
+          description: "{{ $value | humanizePercentage }} of requests are failing on {{ $labels.environment }}. Users are seeing errors."
+          grafana_url: "http://localhost:3030/d/andon-alert-observability?var-environment={{ $labels.environment }}"
+          logs_url: "http://localhost:3030/explore?orgId=1&left={\"datasource\":\"loki\",\"queries\":[{\"expr\":\"{container=\\\"php-fpm\\\",environment=\\\"{{ $labels.environment }}\\\"}|=\\\"ERROR\\\"\"}]}"
+          runbook: "1) Check error logs in Loki 2) Look for common exception patterns 3) Check if MySQL/Redis are healthy 4) Rollback recent deployment if correlated"
 
       - alert: AndonAlertNoTraces
-        expr: absent(traces_spanmetrics_calls_total{service="andon-alert"}) == 1
+        expr: absent(traces_spanmetrics_calls_total{service="andon-alert", environment="production"}) == 1
         for: 10m
         labels:
           severity: warning
           project: factory
+          environment: production
         annotations:
-          summary: "No traces from AndonAlert for 10+ min"
-          description: "OTel instrumentation may be broken or the app is down. No spans are being received by Tempo."
-          grafana_url: "http://localhost:3030/d/andon-alert-observability"
-          runbook: "1) Check if laravel-app container is running 2) Verify OTEL env vars 3) Check Tempo ingestion endpoint 4) Look for OTel export errors in app logs"
+          summary: "No traces from AndonAlert prod for 10+ min"
+          description: "OTel instrumentation may be broken or the app is down. No spans received from production."
+          grafana_url: "http://localhost:3030/d/andon-alert-observability?var-environment=production"
+          runbook: "1) Check if factory-web pod is running 2) Verify OTEL env vars in prod overlay 3) Check Tempo ingestion endpoint 4) Look for OTel export errors in app logs"
