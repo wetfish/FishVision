@@ -110,7 +110,7 @@
       "datasource": { "type": "loki", "uid": "loki" },
       "targets": [
         {
-          "expr": "sum(rate({container=\"laravel-app\"} |= \"ERROR\" [5m])) * 60",
+          "expr": "sum(rate({container=\"php-fpm\"} |= \"ERROR\" [5m])) * 60",
           "legendFormat": "errors/min"
         }
       ],
@@ -137,7 +137,7 @@
       "datasource": { "type": "loki", "uid": "loki" },
       "targets": [
         {
-          "expr": "sum(rate({container=~\"laravel-.*\"}[5m])) * 60",
+          "expr": "sum(rate({container=~\"php-fpm|nginx\"}[5m])) * 60",
           "legendFormat": "lines/min"
         }
       ],
@@ -331,7 +331,7 @@
       "datasource": { "type": "loki", "uid": "loki" },
       "targets": [
         {
-          "expr": "sum by (container) (rate({container=~\"laravel-.*\"}[1m]))",
+          "expr": "sum by (container) (rate({container=~\"php-fpm|nginx\"}[1m]))",
           "legendFormat": "{{ container }}"
         }
       ],
@@ -355,7 +355,7 @@
       "datasource": { "type": "loki", "uid": "loki" },
       "targets": [
         {
-          "expr": "{container=\"laravel-app\"}",
+          "expr": "{container=\"php-fpm\"}",
           "refId": "A"
         }
       ],
@@ -378,7 +378,7 @@
       "datasource": { "type": "loki", "uid": "loki" },
       "targets": [
         {
-          "expr": "{container=\"laravel-nginx\"}",
+          "expr": "{container=\"nginx\"}",
           "refId": "A"
         }
       ],
@@ -408,7 +408,7 @@
       "datasource": { "type": "loki", "uid": "loki" },
       "targets": [
         {
-          "expr": "sum(rate({container=\"laravel-app\"} |= \"ERROR\" [1m]))",
+          "expr": "sum(rate({container=\"php-fpm\"} |= \"ERROR\" [1m]))",
           "legendFormat": "errors/sec"
         }
       ],
@@ -449,7 +449,7 @@
       "datasource": { "type": "loki", "uid": "loki" },
       "targets": [
         {
-          "expr": "{container=\"laravel-app\"} |= \"ERROR\"",
+          "expr": "{container=\"php-fpm\"} |= \"ERROR\"",
           "refId": "A"
         }
       ],
