@@ -6,6 +6,8 @@ metadata:
   name: mysqld-exporter
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: mysqld-exporter
@@ -15,6 +17,7 @@ spec:
         app: mysqld-exporter
     spec:
       hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: mysqld-exporter
         image: prom/mysqld-exporter:latest
@@ -38,6 +41,8 @@ metadata:
   name: redis-exporter
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: redis-exporter
@@ -47,6 +52,7 @@ spec:
         app: redis-exporter
     spec:
       hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: redis-exporter
         image: oliver006/redis_exporter:latest
@@ -64,6 +70,8 @@ metadata:
   name: nginx-exporter
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: nginx-exporter
@@ -73,6 +81,7 @@ spec:
         app: nginx-exporter
     spec:
       hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: nginx-exporter
         image: nginx/nginx-prometheus-exporter:latest
