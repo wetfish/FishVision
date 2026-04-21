@@ -11,8 +11,16 @@
     {
       "title": "App Health",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
           "expr": "up{job=~\"factory-.*\", environment=~\"$environment\"}",
@@ -22,12 +30,30 @@
       "fieldConfig": {
         "defaults": {
           "mappings": [
-            { "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } }, "type": "value" }
+            {
+              "options": {
+                "0": {
+                  "text": "DOWN",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "UP",
+                  "color": "green"
+                }
+              },
+              "type": "value"
+            }
           ],
           "thresholds": {
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "green", "value": 1 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
             ]
           }
         }
@@ -36,8 +62,16 @@
     {
       "title": "Node CPU Usage",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
           "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\", job=~\"factory-.*-node\", environment=~\"$environment\"}[5m])) * 100)",
@@ -51,9 +85,18 @@
           "min": 0,
           "thresholds": {
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 50 },
-              { "color": "red", "value": 80 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
             ]
           }
         }
@@ -62,8 +105,16 @@
     {
       "title": "Node Memory Usage",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
           "expr": "(1 - (node_memory_MemAvailable_bytes{job=~\"factory-.*-node\", environment=~\"$environment\"} / node_memory_MemTotal_bytes{job=~\"factory-.*-node\", environment=~\"$environment\"})) * 100",
@@ -77,9 +128,18 @@
           "min": 0,
           "thresholds": {
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 70 },
-              { "color": "red", "value": 90 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
             ]
           }
         }
@@ -88,8 +148,16 @@
     {
       "title": "Node Disk Usage",
       "type": "gauge",
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
           "expr": "(node_filesystem_size_bytes{job=~\"factory-.*-node\", environment=~\"$environment\", fstype!~\"tmpfs|overlay\"} - node_filesystem_free_bytes{job=~\"factory-.*-node\", environment=~\"$environment\", fstype!~\"tmpfs|overlay\"}) / node_filesystem_size_bytes{job=~\"factory-.*-node\", environment=~\"$environment\", fstype!~\"tmpfs|overlay\"} * 100",
@@ -103,9 +171,18 @@
           "min": 0,
           "thresholds": {
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 70 },
-              { "color": "red", "value": 90 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
             ]
           }
         }
@@ -114,8 +191,16 @@
     {
       "title": "MySQL Connections",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
           "expr": "mysql_global_status_threads_connected{job=~\"factory-mysql-.*\", environment=~\"$environment\"}",
@@ -126,9 +211,18 @@
         "defaults": {
           "thresholds": {
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 80 },
-              { "color": "red", "value": 120 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 120
+              }
             ]
           }
         }
@@ -137,8 +231,16 @@
     {
       "title": "MySQL Queries Per Second",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
           "expr": "rate(mysql_global_status_queries{job=~\"factory-mysql-.*\", environment=~\"$environment\"}[5m])",
@@ -149,8 +251,16 @@
     {
       "title": "Redis Memory Usage",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
           "expr": "redis_memory_used_bytes{job=~\"factory-redis-.*\", environment=~\"$environment\"}",
@@ -166,8 +276,16 @@
     {
       "title": "Redis Connected Clients",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
           "expr": "redis_connected_clients{job=~\"factory-redis-.*\", environment=~\"$environment\"}",
@@ -177,24 +295,47 @@
     }
   ],
   "schemaVersion": 39,
-  "tags": ["factory", "wetfish"],
+  "tags": [
+    "factory",
+    "wetfish"
+  ],
   "templating": {
     "list": [
       {
         "name": "environment",
         "type": "custom",
-        "current": { "text": "All", "value": "$__all" },
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
         "options": [
-          { "text": "All", "value": "$__all", "selected": true },
-          { "text": "staging", "value": "staging", "selected": false },
-          { "text": "production", "value": "production", "selected": false }
+          {
+            "text": "All",
+            "value": "$__all",
+            "selected": true
+          },
+          {
+            "text": "staging",
+            "value": "staging",
+            "selected": false
+          },
+          {
+            "text": "production",
+            "value": "production",
+            "selected": false
+          }
         ],
         "includeAll": true,
-        "multi": false
+        "multi": false,
+        "query": "staging,production",
+        "label": "Environment"
       }
     ]
   },
-  "time": { "from": "now-6h", "to": "now" },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
   "title": "Factory Overview",
   "uid": "factory-overview"
 }
