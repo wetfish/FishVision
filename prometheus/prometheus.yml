@@ -50,37 +50,49 @@ scrape_configs:
           environment: production
           project: factory
 
-  # --- Factory MySQL exporter (deploy exporter sidecars first) ---
-  - job_name: "factory-mysql"
+  # --- Factory MySQL exporter ---
+  # staging: NodePort 30104 (k8s RKE2), prod: direct port 9104
+  - job_name: "factory-mysql-staging"
     static_configs:
-      - targets: ["45.76.235.77:9104"]
+      - targets: ["45.76.235.77:30104"]
         labels:
           environment: staging
           project: factory
+
+  - job_name: "factory-mysql-prod"
+    static_configs:
       - targets: ["104.156.237.105:9104"]
         labels:
           environment: production
           project: factory
 
   # --- Factory Redis exporter ---
-  - job_name: "factory-redis"
+  # staging: NodePort 30121, prod: direct port 9121
+  - job_name: "factory-redis-staging"
     static_configs:
-      - targets: ["45.76.235.77:9121"]
+      - targets: ["45.76.235.77:30121"]
         labels:
           environment: staging
           project: factory
+
+  - job_name: "factory-redis-prod"
+    static_configs:
       - targets: ["104.156.237.105:9121"]
         labels:
           environment: production
           project: factory
 
   # --- Factory Nginx exporter ---
-  - job_name: "factory-nginx"
+  # staging: NodePort 30113, prod: direct port 9113
+  - job_name: "factory-nginx-staging"
     static_configs:
-      - targets: ["45.76.235.77:9113"]
+      - targets: ["45.76.235.77:30113"]
         labels:
           environment: staging
           project: factory
+
+  - job_name: "factory-nginx-prod"
+    static_configs:
       - targets: ["104.156.237.105:9113"]
         labels:
           environment: production

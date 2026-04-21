@@ -90,7 +90,7 @@ groups:
           runbook: "1) SSH to host 2) Run `df -h` and `du -sh /var/log/* | sort -rh | head` 3) Clean old logs/containers: `docker system prune` 4) Expand volume if recurring"
 
       - alert: InstanceDown
-        expr: up{job!~"factory-mysql|factory-redis|factory-nginx|factory-staging-node|factory-prod-node|web-services-node|web-services-traefik|prometheus"} == 0
+        expr: up{job!~"factory-mysql-staging|factory-mysql-prod|factory-redis-staging|factory-redis-prod|factory-nginx-staging|factory-nginx-prod|factory-staging-node|factory-prod-node|web-services-node|web-services-traefik|prometheus"} == 0
         for: 1m
         labels:
           severity: critical
@@ -104,7 +104,7 @@ groups:
   - name: factory
     rules:
       - alert: FactoryMySQLDown
-        expr: up{job="factory-mysql"} == 0
+        expr: up{job=~"factory-mysql-.*"} == 0
         for: 2m
         labels:
           severity: critical
@@ -117,7 +117,7 @@ groups:
           runbook: "1) Check container: `docker ps | grep mysql` 2) Check logs: `docker logs laravel-db --tail 50` 3) Restart: `docker restart laravel-db` 4) Verify connections restored"
 
       - alert: FactoryRedisDown
-        expr: up{job="factory-redis"} == 0
+        expr: up{job=~"factory-redis-.*"} == 0
         for: 2m
         labels:
           severity: critical
@@ -129,7 +129,7 @@ groups:
           runbook: "1) Check container status 2) Check Redis logs 3) Restart Redis container 4) Monitor session errors in app logs"
 
       - alert: FactoryAppDown
-        expr: up{job="factory-nginx"} == 0
+        expr: up{job=~"factory-nginx-.*"} == 0
         for: 2m
         labels:
           severity: critical
@@ -142,7 +142,7 @@ groups:
           runbook: "1) Check containers: `docker compose ps` 2) Check nginx logs: `docker logs laravel-nginx --tail 50` 3) Check PHP-FPM: `docker logs laravel-app --tail 50` 4) Restart stack: `docker compose restart`"
 
       - alert: FactoryHighMySQLConnections
-        expr: mysql_global_status_threads_connected{job="factory-mysql"} > 120
+        expr: mysql_global_status_threads_connected{job=~"factory-mysql-.*"} > 120
         for: 5m
         labels:
           severity: warning
@@ -154,7 +154,7 @@ groups:
           runbook: "1) Check for connection leaks: `SHOW PROCESSLIST` 2) Kill idle connections 3) Review app connection pool config 4) Consider increasing max_connections"
 
       - alert: FactoryHighRedisMemory
-        expr: redis_memory_used_bytes{job="factory-redis"} > 100 * 1024 * 1024
+        expr: redis_memory_used_bytes{job=~"factory-redis-.*"} > 100 * 1024 * 1024
         for: 5m
         labels:
           severity: warning

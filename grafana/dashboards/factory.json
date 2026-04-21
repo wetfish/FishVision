@@ -15,7 +15,7 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "up{job=~\"factory-.*\"}",
+          "expr": "up{job=~\"factory-.*\", environment=~\"$environment\"}",
           "legendFormat": "{{ job }} ({{ environment }})"
         }
       ],
@@ -40,7 +40,7 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\", job=~\"factory-.*-node\"}[5m])) * 100)",
+          "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\", job=~\"factory-.*-node\", environment=~\"$environment\"}[5m])) * 100)",
           "legendFormat": "{{ instance }}"
         }
       ],
@@ -66,7 +66,7 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "(1 - (node_memory_MemAvailable_bytes{job=~\"factory-.*-node\"} / node_memory_MemTotal_bytes{job=~\"factory-.*-node\"})) * 100",
+          "expr": "(1 - (node_memory_MemAvailable_bytes{job=~\"factory-.*-node\", environment=~\"$environment\"} / node_memory_MemTotal_bytes{job=~\"factory-.*-node\", environment=~\"$environment\"})) * 100",
           "legendFormat": "{{ instance }}"
         }
       ],
@@ -92,7 +92,7 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "(node_filesystem_size_bytes{job=~\"factory-.*-node\", fstype!~\"tmpfs|overlay\"} - node_filesystem_free_bytes{job=~\"factory-.*-node\", fstype!~\"tmpfs|overlay\"}) / node_filesystem_size_bytes{job=~\"factory-.*-node\", fstype!~\"tmpfs|overlay\"} * 100",
+          "expr": "(node_filesystem_size_bytes{job=~\"factory-.*-node\", environment=~\"$environment\", fstype!~\"tmpfs|overlay\"} - node_filesystem_free_bytes{job=~\"factory-.*-node\", environment=~\"$environment\", fstype!~\"tmpfs|overlay\"}) / node_filesystem_size_bytes{job=~\"factory-.*-node\", environment=~\"$environment\", fstype!~\"tmpfs|overlay\"} * 100",
           "legendFormat": "{{ instance }} {{ mountpoint }}"
         }
       ],
@@ -118,7 +118,7 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "mysql_global_status_threads_connected{job=\"factory-mysql\"}",
+          "expr": "mysql_global_status_threads_connected{job=~\"factory-mysql-.*\", environment=~\"$environment\"}",
           "legendFormat": "{{ environment }} connections"
         }
       ],
@@ -141,7 +141,7 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "rate(mysql_global_status_queries{job=\"factory-mysql\"}[5m])",
+          "expr": "rate(mysql_global_status_queries{job=~\"factory-mysql-.*\", environment=~\"$environment\"}[5m])",
           "legendFormat": "{{ environment }} QPS"
         }
       ]
@@ -153,7 +153,7 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "redis_memory_used_bytes{job=\"factory-redis\"}",
+          "expr": "redis_memory_used_bytes{job=~\"factory-redis-.*\", environment=~\"$environment\"}",
           "legendFormat": "{{ environment }} used"
         }
       ],
@@ -170,7 +170,7 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "redis_connected_clients{job=\"factory-redis\"}",
+          "expr": "redis_connected_clients{job=~\"factory-redis-.*\", environment=~\"$environment\"}",
           "legendFormat": "{{ environment }} clients"
         }
       ]
