@@ -40,7 +40,7 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\", project=\"factory\"}[5m])) * 100)",
+          "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\", job=~\"factory-.*-node\"}[5m])) * 100)",
           "legendFormat": "{{ instance }}"
         }
       ],
@@ -66,7 +66,7 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "(1 - (node_memory_MemAvailable_bytes{project=\"factory\"} / node_memory_MemTotal_bytes{project=\"factory\"})) * 100",
+          "expr": "(1 - (node_memory_MemAvailable_bytes{job=~\"factory-.*-node\"} / node_memory_MemTotal_bytes{job=~\"factory-.*-node\"})) * 100",
           "legendFormat": "{{ instance }}"
         }
       ],
@@ -92,7 +92,7 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "(node_filesystem_size_bytes{project=\"factory\", fstype!~\"tmpfs|overlay\"} - node_filesystem_free_bytes{project=\"factory\", fstype!~\"tmpfs|overlay\"}) / node_filesystem_size_bytes{project=\"factory\", fstype!~\"tmpfs|overlay\"} * 100",
+          "expr": "(node_filesystem_size_bytes{job=~\"factory-.*-node\", fstype!~\"tmpfs|overlay\"} - node_filesystem_free_bytes{job=~\"factory-.*-node\", fstype!~\"tmpfs|overlay\"}) / node_filesystem_size_bytes{job=~\"factory-.*-node\", fstype!~\"tmpfs|overlay\"} * 100",
           "legendFormat": "{{ instance }} {{ mountpoint }}"
         }
       ],
