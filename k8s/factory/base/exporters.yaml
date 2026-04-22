@@ -84,7 +84,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: nginx-exporter
-        image: nginx/nginx-prometheus-exporter:v1.3.0
+        image: nginx/nginx-prometheus-exporter:1.4.2
         args:
         - -nginx.scrape-uri=http://factory-web/stub_status
         ports:
