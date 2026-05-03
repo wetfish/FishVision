@@ -114,7 +114,19 @@ groups:
           description: "MySQL exporter at {{ $labels.instance }} unreachable for 2+ min. Database queries will fail. Application impact: FULL OUTAGE."
           grafana_url: "http://localhost:3030/d/factory-overview?var-environment={{ $labels.environment }}"
           logs_url: "http://localhost:3030/explore?orgId=1&left={\"datasource\":\"loki\",\"queries\":[{\"expr\":\"{container=\\\"laravel-db\\\"}\"}]}"
-          runbook: "1) Check container: `docker ps | grep mysql` 2) Check logs: `docker logs laravel-db --tail 50` 3) Restart: `docker restart laravel-db` 4) Verify connections restored"
+          runbook: "1) Check pod: `kubectl get pod factory-mysql-0 -n factory-staging` 2) Check logs: `kubectl logs factory-mysql-0 -n factory-staging --tail 50` 3) Restart: `kubectl delete pod factory-mysql-0 -n factory-staging` 4) Verify exporter scrape recovers"
+
+      - alert: FactoryMySQLUnreachable
+        expr: mysql_up{job=~"factory-mysql-.*"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          project: factory
+        annotations:
+          summary: "Factory MySQL unreachable ({{ $labels.environment }})"
+          description: "mysqld-exporter reports mysql_up=0 for {{ $labels.instance }} for 2+ min. MySQL is running but refusing connections, or the pod is in CrashLoopBackOff."
+          grafana_url: "http://localhost:3030/d/factory-overview?var-environment={{ $labels.environment }}"
+          runbook: "1) `kubectl get pod factory-mysql-0 -n factory-staging` 2) `kubectl logs factory-mysql-0 -n factory-staging --tail 50` 3) `kubectl describe pod factory-mysql-0 -n factory-staging` 4) Delete pod to force restart if in CrashLoopBackOff"
 
       - alert: FactoryRedisDown
         expr: up{job=~"factory-redis-.*"} == 0
