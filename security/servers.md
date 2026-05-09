@@ -19,7 +19,7 @@ Sources: prometheus.yml scrape targets, ~/.ssh/config, shell history (90-day aud
 |---|---|---|---|---|
 | `stage` | `107.191.43.166` | root | `cyba_wetish` | Web services staging |
 | `prod` / `vultr-prod` | `149.28.239.165` | root | `cyba_wetish` | Web services production |
-| `old-prod` | `134.195.89.60` | root | `cyba_wetish` | Legacy production (decommissioning) |
+| `old-prod` | `134.195.89.60` | root | `cyba_wetish` | Legacy production |
 | `future-prod` | `164.92.229.176` | root | `cyba_wetish` | Future production node (IRC) |
 
 ---
@@ -47,7 +47,7 @@ Sources: prometheus.yml scrape targets, ~/.ssh/config, shell history (90-day aud
 | Alias | IP / Host | User | Key | Notes |
 |---|---|---|---|---|
 | *(IRC server)* | `us-chicago-01.wetfish.chat` | root | `cyba_wetish` | wetfish IRC server |
-| *(unknown)* | `216.128.155.242` | root | `jfc-deploy` | Accessed via history — unaliased, purpose unclear |
+| *(unnamed)* | `216.128.155.242` | root | `jfc-deploy` | Active server — needs alias added to ~/.ssh/config |
 | *(local LAN)* | `192.168.1.x` range | various | — | Local dev/LAN hosts (rachel, testdev, etc.) — not production |
 | *(AWS EC2)* | `54.187.211.44` | `debug-labs` | — | One-off access (DoorDash interview lab) — not infra |
 
@@ -65,13 +65,12 @@ All Linux servers above require kernel patching. Priority order:
 6. `155.138.225.13` — andon-alert-stage
 7. `144.202.63.236` — testforums/mini-stage
 8. `164.92.229.176` — future-prod
-9. `134.195.89.60` — old-prod (if still live)
-10. `216.128.155.242` — purpose unclear, needs verification
+9. `134.195.89.60` — old-prod
+10. `216.128.155.242` — unnamed server (jfc-deploy key)
 
 ---
 
 ## Notes
 
-- `216.128.155.242` appeared in shell history with `jfc-deploy` key — needs to be identified before patching or decommissioned.
-- `old-prod` (`134.195.89.60`) appears to be in the process of being decommissioned (backups being migrated to vultr-prod). Confirm status.
-- SSH keys in use: `cyba_wetish` (primary), `jfc-deploy` (factory + unknown host), `mini-stage` (testforums).
+- `216.128.155.242` has no SSH alias — add one to `~/.ssh/config`.
+- SSH keys in use: `cyba_wetish` (primary), `jfc-deploy` (factory + 216.128.155.242), `mini-stage` (testforums).
