@@ -210,6 +210,22 @@ services:
           memory: 16m
 
   # -----------------------------
+  # Pushgateway - Pentest metrics receiver
+  # -----------------------------
+  pushgateway:
+    image: prom/pushgateway:v1.11.0
+    container_name: pushgateway
+    ports:
+      - "9091:9091"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+        reservations:
+          memory: 32m
+
+  # -----------------------------
   # Ollama - Local LLM inference (optional, profile: llm)
   # -----------------------------
   ollama:

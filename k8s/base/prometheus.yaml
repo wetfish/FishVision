@@ -18,6 +18,14 @@ data:
       - job_name: prometheus
         static_configs:
           - targets: ["localhost:9090"]
+
+      - job_name: "pentest"
+        honor_labels: true
+        scrape_interval: 30s
+        static_configs:
+          - targets: ["pushgateway.pentest.svc.cluster.local:9091"]
+            labels:
+              project: pentest
   alert.rules.yml: |
     groups:
       - name: server-health
@@ -29,6 +37,58 @@ data:
               severity: critical
             annotations:
               summary: "Instance {{ $labels.instance }} down"
+      - name: pentest
+        rules:
+          - alert: PentestCriticalRisk
+            expr: pentest_risk_score > 74
+            for: 5m
+            labels:
+              severity: critical
+              project: pentest
+            annotations:
+              summary: "Critical risk score on {{ $labels.target }}"
+              description: "Pentest risk score for {{ $labels.target }} is {{ $value }}/100 — immediate remediation required."
+              runbook: "1) Check kubectl exec -n pentest deploy/pentest-frontend -- ls /output/analysis/{{ $labels.target }}/ 2) Review findings in Grafana 3) Escalate to asset owner"
+          - alert: PentestSqlInjection
+            expr: pentest_sqli_found > 0
+            for: 0m
+            labels:
+              severity: critical
+              project: pentest
+            annotations:
+              summary: "SQL injection confirmed on {{ $labels.target }}"
+              description: "{{ $value }} SQL injection vulnerabilities confirmed on {{ $labels.target }} — immediate patch required."
+              runbook: "1) Check sqlmap results in exploitation report 2) Verify WAF rules block injection patterns 3) Patch vulnerable endpoints"
+          - alert: PentestDefaultCredentials
+            expr: pentest_creds_found > 0
+            for: 0m
+            labels:
+              severity: critical
+              project: pentest
+            annotations:
+              summary: "Default credentials found on {{ $labels.target }}"
+              description: "{{ $value }} services with default/weak credentials on {{ $labels.target }}."
+              runbook: "1) Check hydra results in exploit report 2) Change passwords immediately 3) Enforce password policy"
+          - alert: PentestDirectIPExposure
+            expr: pentest_exploit_targets > 0
+            for: 5m
+            labels:
+              severity: warning
+              project: pentest
+            annotations:
+              summary: "Direct IP exposure on {{ $labels.target }}"
+              description: "{{ $value }} subdomains expose direct IPs bypassing Cloudflare WAF."
+              runbook: "1) Check exploit_targets.txt 2) Route subdomains through Cloudflare proxy 3) Restrict direct IP access via firewall"
+          - alert: PentestHighVulnDensity
+            expr: pentest_vuln_critical + pentest_vuln_high > 5
+            for: 5m
+            labels:
+              severity: warning
+              project: pentest
+            annotations:
+              summary: "High vulnerability density on {{ $labels.target }}"
+              description: "{{ $value }} critical/high severity findings on {{ $labels.target }}."
+              runbook: "1) Review nuclei findings in active report 2) Prioritize patching by CVE score 3) Schedule full remediation sprint"
 ---
 apiVersion: apps/v1
 kind: Deployment

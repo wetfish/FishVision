@@ -10,7 +10,7 @@ spec:
         - name: php-fpm
           env:
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "http://144.48.106.242:4318"
+              value: "http://wetfish.chat:4318"
             - name: OTEL_SERVICE_NAME
               value: "andon-alert"
             - name: OTEL_RESOURCE_ATTRIBUTES
@@ -28,7 +28,7 @@ spec:
         - name: php-fpm
           env:
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "http://144.48.106.242:4318"
+              value: "http://wetfish.chat:4318"
             - name: OTEL_SERVICE_NAME
               value: "andon-alert-worker"
             - name: OTEL_RESOURCE_ATTRIBUTES
