@@ -54,7 +54,7 @@ scrape_configs:
   # staging: NodePort 30104 (k8s RKE2), prod: direct port 9104
   - job_name: "factory-mysql-staging"
     static_configs:
-      - targets: ["45.76.235.77:30104"]
+      - targets: ["45.76.235.77:9104"]
         labels:
           environment: staging
           project: factory
@@ -67,10 +67,9 @@ scrape_configs:
           project: factory
 
   # --- Factory Redis exporter ---
-  # staging: NodePort 30121, prod: direct port 9121
   - job_name: "factory-redis-staging"
     static_configs:
-      - targets: ["45.76.235.77:30121"]
+      - targets: ["45.76.235.77:9121"]
         labels:
           environment: staging
           project: factory
@@ -83,10 +82,9 @@ scrape_configs:
           project: factory
 
   # --- Factory Nginx exporter ---
-  # staging: NodePort 30113, prod: direct port 9113
   - job_name: "factory-nginx-staging"
     static_configs:
-      - targets: ["45.76.235.77:30113"]
+      - targets: ["45.76.235.77:9113"]
         labels:
           environment: staging
           project: factory
@@ -122,6 +120,17 @@ scrape_configs:
   - job_name: "alertmanager"
     static_configs:
       - targets: ["alertmanager:9093"]
+
+  # --- Pentest scanner metrics (via Pushgateway) ---
+  # In docker-compose: pushgateway:9091
+  # In k8s: pushgateway.pentest.svc.cluster.local:9091
+  - job_name: "pentest"
+    honor_labels: true
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["pushgateway:9091"]
+        labels:
+          project: pentest
 
   # --- Web-Services-K8s Prometheus federation ---
   # Uncomment when web-services-k8s Prometheus federation endpoint is available
