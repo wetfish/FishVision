@@ -19,7 +19,7 @@ scrape_configs:
   # --- Web-Services nodes ---
   - job_name: "web-services-node"
     static_configs:
-      - targets: ["staging.wetfishonline.com:9100"]
+      - targets: ["staging-forums.wetfish.net:9100"]
         labels:
           environment: staging
           project: web-services
@@ -30,7 +30,7 @@ scrape_configs:
 
   - job_name: "testforums"
     static_configs:
-      - targets: ["testforums.wetfishonline.com:9100"]
+      - targets: ["testforum.wetfish.net:9100"]
         labels:
           environment: production
           project: web-services
@@ -98,7 +98,7 @@ scrape_configs:
   # --- Web-Services Traefik metrics ---
   - job_name: "web-services-traefik"
     static_configs:
-      - targets: ["staging.wetfishonline.com:8082"]
+      - targets: ["staging-forums.wetfish.net:8082"]
         labels:
           environment: staging
           project: web-services
