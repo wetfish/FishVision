@@ -30,18 +30,6 @@ scrape_configs:
       - labels:
           level:
 
-  # Collect pentest scan results from the shared PVC (docker-compose)
-  # In k8s, Promtail's kubernetes_sd_configs will pick up pentest pod logs automatically.
-  # Adjust __path__ to match the PVC mount path on your host.
-  - job_name: pentest
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: pentest
-          project: pentest
-          __path__: /var/lib/longhorn/pentest-results/**/*.log
-
   # Collect system logs
   - job_name: system
     static_configs:
