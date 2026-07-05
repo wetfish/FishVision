@@ -359,17 +359,16 @@ groups:
           runbook: "1) Check error logs in Loki 2) Look for common exception patterns 3) Check if MySQL/Redis are healthy 4) Rollback recent deployment if correlated"
 
       - alert: AndonAlertNoTraces
-        expr: absent(traces_spanmetrics_calls_total{service="andon-alert", environment="production"}) == 1
+        expr: absent(traces_spanmetrics_calls_total{service="andon-alert"}) == 1
         for: 10m
         labels:
           severity: warning
           project: factory
-          environment: production
         annotations:
-          summary: "No traces from AndonAlert prod for 10+ min"
-          description: "OTel instrumentation may be broken or the app is down. No spans received from production."
-          grafana_url: "http://localhost:3030/d/andon-alert-observability?var-environment=production"
-          runbook: "1) Check if factory-web pod is running 2) Verify OTEL env vars in prod overlay 3) Check Tempo ingestion endpoint 4) Look for OTel export errors in app logs"
+          summary: "No traces from AndonAlert for 10+ min"
+          description: "OTel instrumentation may be broken or the app is down. No spans received from any environment."
+          grafana_url: "http://localhost:3030/d/andon-alert-observability"
+          runbook: "1) Check if factory-web pod is running 2) Verify OTEL env vars 3) Check Tempo ingestion endpoint with tempo_distributor_spans_received_total 4) Look for OTel export errors in app logs"
 
   - name: pentest
     rules:
