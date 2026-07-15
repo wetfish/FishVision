@@ -1,0 +1,86 @@
+groups:
+  - name: chive-charities
+    rules:
+      - alert: ChiveDonationsDown
+        expr: up{service="cc-donations", job="cc-donations-node"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          project: chive-charities
+        annotations:
+          summary: "cc-donations is DOWN"
+          description: "Node Exporter or application on {{ $labels.instance }} is unreachable. Donation platform may be offline."
+          grafana_url: "http://localhost:3030/d/chive-charities"
+          runbook: "1) Check docker compose status on the Chive host 2) Verify firewall allows port 9100 from FishVision 3) Check host health"
+
+      - alert: ChiveRecipientsDown
+        expr: up{service="cc-recipients", job="cc-recipients-node"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          project: chive-charities
+        annotations:
+          summary: "cc-recipients is DOWN"
+          description: "Node Exporter or application on {{ $labels.instance }} is unreachable. Grant application platform may be offline."
+          grafana_url: "http://localhost:3030/d/chive-charities"
+          runbook: "1) Check docker compose status on the Chive host 2) Verify firewall allows port 9100 from FishVision 3) Check host health"
+
+      - alert: ChiveHighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le, service) (
+              rate(traces_spanmetrics_latency_bucket{project="chive-charities"}[5m])
+            )
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+          project: chive-charities
+        annotations:
+          summary: "{{ $labels.service }} P95 latency > 2s"
+          description: "P95 request latency is {{ $value | printf \"%.2f\" }}s on {{ $labels.service }}."
+          grafana_url: "http://localhost:3030/d/chive-charities"
+          runbook: "1) Check trace waterfall in Grafana for slow spans 2) Look for DB query bottlenecks 3) Check Braintree API response times"
+
+      - alert: ChiveHighErrorRate
+        expr: |
+          sum by (service) (
+            rate(traces_spanmetrics_calls_total{project="chive-charities", status_code="STATUS_CODE_ERROR"}[5m])
+          )
+          /
+          sum by (service) (
+            rate(traces_spanmetrics_calls_total{project="chive-charities"}[5m])
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          project: chive-charities
+        annotations:
+          summary: "{{ $labels.service }} error rate > 5%"
+          description: "{{ $value | humanizePercentage }} of requests are failing on {{ $labels.service }}."
+          grafana_url: "http://localhost:3030/d/chive-charities"
+          runbook: "1) Check error logs in Loki 2) Look for common exception patterns 3) Check if database/external APIs are healthy"
+
+      - alert: ChiveNoTraces
+        expr: sum(rate(traces_spanmetrics_calls_total{project="chive-charities"}[15m])) == 0
+        for: 15m
+        labels:
+          severity: warning
+          project: chive-charities
+        annotations:
+          summary: "No traces from Chive Charities for 15+ min"
+          description: "OTel instrumentation may be broken or all apps are down. No spans received in the last 15 minutes."
+          grafana_url: "http://localhost:3030/d/chive-charities"
+          runbook: "1) Check if Chive containers are running 2) Verify OTel exporter endpoint is reachable 3) Check Tempo ingestion with tempo_distributor_spans_received_total"
+
+      - alert: ChiveRecipientsTraefikDown
+        expr: up{service="cc-recipients", job="cc-recipients-traefik"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          project: chive-charities
+        annotations:
+          summary: "cc-recipients Traefik metrics unreachable"
+          description: "Cannot scrape Traefik metrics from {{ $labels.instance }}. Routing visibility lost."
+          grafana_url: "http://localhost:3030/d/chive-charities"
+          runbook: "1) Check Traefik container on Chive host 2) Verify metrics port 8085 is exposed 3) Check firewall rules"

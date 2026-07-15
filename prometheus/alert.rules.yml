@@ -79,7 +79,7 @@ groups:
           runbook: "1) SSH to host 2) Run `free -h` and `ps aux --sort=-%mem | head` 3) Check for memory leaks 4) Restart offending service"
 
       - alert: HighDiskUsage
-        expr: (node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} - node_filesystem_free_bytes{fstype!~"tmpfs|overlay"}) / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} * 100 > 90
+        expr: (node_filesystem_size_bytes{fstype!~"tmpfs|overlay",mountpoint!~"/System/Volumes/.*|/private/var/vm"} - node_filesystem_free_bytes{fstype!~"tmpfs|overlay",mountpoint!~"/System/Volumes/.*|/private/var/vm"}) / node_filesystem_size_bytes{fstype!~"tmpfs|overlay",mountpoint!~"/System/Volumes/.*|/private/var/vm"} * 100 > 90
         for: 10m
         labels:
           severity: critical
@@ -90,7 +90,7 @@ groups:
           runbook: "1) SSH to host 2) Run `df -h` and `du -sh /var/log/* | sort -rh | head` 3) Clean old logs/containers: `docker system prune` 4) Expand volume if recurring"
 
       - alert: InstanceDown
-        expr: up{job!~"factory-mysql-staging|factory-mysql-prod|factory-redis-staging|factory-redis-prod|factory-nginx-staging|factory-nginx-prod|factory-staging-node|factory-prod-node|web-services-node|web-services-traefik|testforums|prometheus"} == 0
+        expr: up{job!~"factory-mysql-staging|factory-mysql-prod|factory-redis-staging|factory-redis-prod|factory-nginx-staging|factory-nginx-prod|factory-staging-node|factory-prod-node|web-services-node|web-services-traefik|testforums|prometheus|cc-donations-node|cc-recipients-node|cc-recipients-traefik"} == 0
         for: 1m
         labels:
           severity: critical

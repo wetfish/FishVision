@@ -42,6 +42,13 @@ inhibit_rules:
       - alertname = WebServicesHighErrorRate
     equal: [router, environment]
 
+  # Suppress Chive service-level alerts when the node is down
+  - source_matchers:
+      - alertname =~ "Chive(Donations|Recipients)Down"
+    target_matchers:
+      - alertname =~ "Chive.*TraefikDown|ChiveHighLatency|ChiveHighErrorRate"
+      - project = chive-charities
+
 receivers:
   - name: irc-relay
     webhook_configs:
