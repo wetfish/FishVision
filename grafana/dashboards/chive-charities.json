@@ -56,7 +56,14 @@
                 "value": 0.01
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0e View cc-donations traces",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22tempo%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22queryType%22%3A%20%22traceql%22%2C%20%22query%22%3A%20%22%7Bresource.service.name%3D%5C%22cc-donations%5C%22%7D%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
         }
       },
       "options": {
@@ -193,7 +200,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate({project=\"chive-charities\", container=~\"cc-donations-web\"} |= \"ERROR\" [5m])) * 60",
+          "expr": "sum(rate({project=\"chive-charities\", container=~\"cc-donations-nginx\"} |~ \"(?i)error|exception|fatal|stack|SQLSTATE|500\" [5m])) * 60",
           "legendFormat": "errors/min"
         }
       ],
@@ -218,7 +225,14 @@
                 "value": 10
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0d View cc-donations error logs",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22loki%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22expr%22%3A%20%22%7Bproject%3D%5C%22chive-charities%5C%22%2C%20container%3D~%5C%22cc-donations-nginx%7Ccc-donations-web%5C%22%7D%20%7C%3D%20%5C%22500%5C%22%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
         }
       },
       "options": {
@@ -268,7 +282,14 @@
                 "value": 0.01
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0e View cc-recipients traces",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22tempo%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22queryType%22%3A%20%22traceql%22%2C%20%22query%22%3A%20%22%7Bresource.service.name%3D%5C%22cc-recipients%5C%22%7D%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
         }
       },
       "options": {
@@ -405,7 +426,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate({project=\"chive-charities\", container=~\"cc-recipients-php\"} |= \"ERROR\" [5m])) * 60",
+          "expr": "sum(rate({project=\"chive-charities\", container=~\"cc-recipients-php\"} |~ \"(?i)error|exception|fatal|stack|SQLSTATE|500\" [5m])) * 60",
           "legendFormat": "errors/min"
         }
       ],
@@ -430,7 +451,14 @@
                 "value": 10
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0d View cc-recipients error logs",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22loki%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22expr%22%3A%20%22%7Bproject%3D%5C%22chive-charities%5C%22%2C%20container%3D~%5C%22cc-recipients-php%7Ccc-recipients-api%5C%22%7D%20%7C%3D%20%5C%22500%5C%22%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
         }
       },
       "options": {
@@ -486,7 +514,14 @@
           },
           "color": {
             "mode": "palette-classic"
-          }
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0e Traces for ${__field.labels.service}",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22tempo%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22queryType%22%3A%20%22traceql%22%2C%20%22query%22%3A%20%22%7Bresource.service.name%3D%5C%22%24%7B__field.labels.service%7D%5C%22%7D%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
         }
       },
       "options": {
@@ -715,7 +750,7 @@
       },
       "targets": [
         {
-          "expr": "(1 - (node_memory_MemAvailable_bytes{project=\"chive-charities\"} / node_memory_MemTotal_bytes{project=\"chive-charities\"})) * 100",
+          "expr": "(1 - (node_memory_free_bytes{project=\"chive-charities\"} / node_memory_total_bytes{project=\"chive-charities\"})) * 100",
           "legendFormat": "{{ service }}"
         }
       ],
@@ -1083,7 +1118,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate({project=\"chive-charities\"} |= \"ERROR\" [1m]))",
+          "expr": "sum(rate({project=\"chive-charities\"} |~ \"(?i)error|exception|fatal|stack|SQLSTATE|500\" [1m]))",
           "legendFormat": "errors/sec"
         }
       ],
@@ -1098,7 +1133,14 @@
           "color": {
             "fixedColor": "red",
             "mode": "fixed"
-          }
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0d View ${__field.labels.container} error logs",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22loki%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22expr%22%3A%20%22%7Bproject%3D%5C%22chive-charities%5C%22%2C%20container%3D%5C%22%24%7B__field.labels.container%7D%5C%22%7D%20%7C%3D%20%5C%22500%5C%22%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
         }
       }
     },
@@ -1133,7 +1175,19 @@
           "color": {
             "mode": "palette-classic"
           },
-          "noValue": "0 - no span errors"
+          "noValue": "0 - no span errors",
+          "links": [
+            {
+              "title": "\ud83d\udd0d View error logs for ${__field.labels.service}",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22loki%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22expr%22%3A%20%22%7Bproject%3D%5C%22chive-charities%5C%22%2C%20service%3D%5C%22%24%7B__field.labels.service%7D%5C%22%7D%20%7C%3D%20%5C%22500%5C%22%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            },
+            {
+              "title": "\ud83d\udd0e View traces for ${__field.labels.service}",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22tempo%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22queryType%22%3A%20%22traceql%22%2C%20%22query%22%3A%20%22%7Bresource.service.name%3D%5C%22%24%7B__field.labels.service%7D%5C%22%7D%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
         }
       }
     },
@@ -1153,7 +1207,7 @@
       },
       "targets": [
         {
-          "expr": "{project=\"chive-charities\"} |= \"ERROR\"",
+          "expr": "{project=\"chive-charities\"} |~ \"(?i)error|exception|fatal|stack|SQLSTATE|500\"",
           "refId": "A"
         }
       ],
@@ -1180,9 +1234,8 @@
     "list": [
       {
         "current": {
-          "selected": false,
           "text": "All",
-          "value": "$__all"
+          "value": "All"
         },
         "hide": 0,
         "includeAll": true,
@@ -1208,6 +1261,11 @@
             "selected": false,
             "text": "production",
             "value": "production"
+          },
+          {
+            "text": "local",
+            "value": "local",
+            "selected": false
           }
         ],
         "query": "development,staging,production",

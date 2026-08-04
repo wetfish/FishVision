@@ -1,0 +1,147 @@
+{
+  "title": "ChiveStack — Dashboard Guide",
+  "uid": "help",
+  "tags": ["documentation", "help", "onboarding"],
+  "refresh": "",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "🐟  ChiveStack Monitoring Stack",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "type": "text",
+      "title": "Stack Overview",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 1 },
+      "options": {
+        "mode": "markdown",
+        "content": "## Services Monitored\n\n| Project | Services | Data Available |\n|---|---|---|\n| **Chive Charities** | cc-donations, cc-recipients | Full — OTel traces, application logs, host metrics |\n| **Screaming Eagle** | eagle-php | Logs only — no OTel traces yet |\n| **Monitoring Stack** | Prometheus, Loki, Tempo, Grafana, Alertmanager, Promtail, IRC Relay | Self-monitoring — all scrape targets, disk/cpu/memory |\n\n## Data Flow\n\n```\nApp (OTel SDK) ──traces──▶ Tempo ──span metrics──▶ Prometheus\n     │                                              │\n     └──logs──▶ Promtail ──logs──▶ Loki ◀──dashboards── Grafana\n                  │                              │\n              Node Exporter ──host metrics──▶  Prometheus ◀──alert rules──▶ Alertmanager ──webhook──▶ IRC Relay ──▶ #alerts\n                                                                                                         │\n                                                                                                    IRC Bot + Ollama LLM\n                                                                                                    (automatic investigation)\n```\n\n## Dashboards\n\n| Dashboard | What It Shows | When To Use |\n|---|---|---|\n| **Chive Charities** | RED metrics (rate/errors/duration), host CPU/memory/disk, live log streams, trace table | Day-to-day monitoring — check app health at a glance |\n| **Error Audit** | Cross-app error rates, errors by endpoint, DB/external errors, Kubernetes logs, deduplicated error patterns | Something broke — find what's failing and where |\n| **SLO** | Success rate, error budget remaining, burn rate, latency compliance, budget policy | Is this a drop-everything emergency or a slow burn? |\n| **This Dashboard** | Documentation and onboarding | Learn the stack or onboard a new team member |"
+      }
+    },
+    {
+      "type": "row",
+      "title": "📊  Chive Charities — Observability Dashboard",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 }
+    },
+    {
+      "type": "text",
+      "title": "What This Dashboard Shows",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
+      "options": {
+        "mode": "markdown",
+        "content": "**Purpose**: Day-to-day health monitoring of Chive Charities services.\n\n**Data sources**: Prometheus (span metrics + host metrics), Loki (application logs), Tempo (distributed traces)\n\n**Rows explained**:\n\n| Row | What It Shows |\n|---|---|\n| **Service Health** | Request rate, P50/P99 latency, error rate for each service. Color-coded: green = healthy, yellow = slow, red = failing |\n| **Request Metrics** | Throughput and latency broken down by service name and endpoint. Heatmap shows latency distribution |\n| **Host Infrastructure** | CPU, memory, disk, network for the Chive hosts. Disk is a gauge (green <70%, red >90%) |\n| **Distributed Traces** | Recent Tempo traces with drill-down links. Click a Trace ID to see full span waterfall |\n| **Application Logs** | Live log streams for each service. Use to watch for error patterns in real time |\n| **Error Analysis** | Error log rate (Loki), span error rate by endpoint (Prometheus), filtered error log stream |\n\n**Template variable**: `environment` — filter by development, staging, production, or All.\n\n**Default time range**: 1 hour with 30-second auto-refresh."
+      }
+    },
+    {
+      "type": "text",
+      "title": "When To Use & How To Read",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
+      "options": {
+        "mode": "markdown",
+        "content": "### Use This Dashboard When:\n- You're starting your day — check that all services are healthy\n- You're on call — monitor for unexpected changes\n- Someone reports slowness — check latency panels and the heatmap\n- You need to trace a specific request — use the Recent Traces table\n\n### Reading The Stat Panels\nEach stat panel shows the **current value** with a color-coded background:\n- **Green** — healthy\n- **Yellow** — warning (e.g. P50 >100ms, error rate >1/min)\n- **Red** — critical (e.g. P99 >1000ms, error rate >10/min)\n\nClick the magnifying glass 🔍 on any panel to drill into the raw data in Grafana Explore (traces, logs, or metrics).\n\n### Quick Diagnostics\n| Symptom | What To Check |\n|---|---|\n| Request rate drops to zero | cc-donations or cc-recipients DOWN alert? Check host health |\n| P99 latency spiking | Latency heatmap — are all requests slow or just one endpoint? Click through to traces |\n| Error rate rising | Switch to **Error Audit** dashboard for endpoint-level breakdown |\n| All services down | InstanceDown alert — check host connectivity and Node Exporter |\n\n### Related Alerts\n- `ChiveDonationsDown`, `ChiveRecipientsDown` — service unreachable\n- `ChiveHighLatency` — P95 latency >2s\n- `ChiveHighErrorRate` — error rate >5%\n- `ChiveNoTraces` — no traces received in 15 minutes\n- `HighCPUUsage`, `HighMemoryUsage`, `HighDiskUsage` — host resource alerts"
+      }
+    },
+    {
+      "type": "row",
+      "title": "🔍  Error Audit — All Apps Dashboard",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 }
+    },
+    {
+      "type": "text",
+      "title": "What This Dashboard Shows",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 19 },
+      "options": {
+        "mode": "markdown",
+        "content": "**Purpose**: Cross-app error investigation. When something is broken, this dashboard answers \"what exactly\" is failing.\n\n**Data sources**: Prometheus (span error metrics), Loki (error log patterns)\n\n**Rows explained**:\n\n| Row | What It Shows |\n|---|---|\n| **Overview** | Total API errors/sec, per-service breakdown (cc-donations, cc-recipients, Eagle). Stat panels color-coded by severity |\n| **Error Trends** | API errors by service (Prometheus) and application log errors by project (Loki) — shows whether the problem is growing or shrinking |\n| **Error Details** | API errors by endpoint (barchart) — which route is failing most? Database & external errors — SQLSTATE, MySQL, Braintree, Redis errors from logs |\n| **Error Logs** | Raw error log streams for each service with deduplication |\n| **Kubernetes** | Log volume and pod errors by namespace — for K8s deployments |\n| **Top Error Patterns** | Deduplicated recent error log entries — \"what exactly is the error message?\" |\n\n**Template variable**: `project` — multi-select filter for chive-charities and/or screaming-eagle.\n\n**Default time range**: 6 hours with 30-second auto-refresh."
+      }
+    },
+    {
+      "type": "text",
+      "title": "When To Use & Investigation Workflow",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 19 },
+      "options": {
+        "mode": "markdown",
+        "content": "### Use This Dashboard When:\n- An alert fires — this is your first stop for diagnosis\n- Someone reports errors — confirm the scope and impact\n- After a deploy — watch for new error patterns appearing\n- Investigating a specific endpoint — use the barchart to see error distribution\n\n### Investigation Workflow\n```\n1. Check Overview stat panels\n   → Which service has errors?\n   → How many errors/sec?\n   │\n2. Check Error Trends\n   → Is it getting worse (rising) or recovering (falling)?\n   │\n3. Check API Errors by Endpoint (barchart)\n   → Which specific route/endpoint is failing?\n   │\n4. Check Database & External Errors\n   → MySQL down? Braintree API degraded? Timeout?\n   │\n5. Check Top Error Patterns panel\n   → What's the actual error message?\n   │\n6. Check Error Logs (per service)\n   → View raw log lines for full stack traces\n```\n\n### Related Alerts\n- `ChiveApiErrorRateHigh` — error rate >10%\n- `ChiveLogErrorSpike` — span error spikes\n- `EagleDown` — Screaming Eagle unreachable\n- `ChiveSloErrorBudgetBurn` — error budget burning too fast (see SLO dashboard)"
+      }
+    },
+    {
+      "type": "row",
+      "title": "🎯  SLO — Service Level Reliability Dashboard",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 }
+    },
+    {
+      "type": "text",
+      "title": "What This Dashboard Shows",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "options": {
+        "mode": "markdown",
+        "content": "**Purpose**: Measures service reliability against defined SLO targets. Answers \"is this an emergency or a slow burn?\"\n\n**Data source**: Prometheus (span metrics + recording rules)\n\n**Key concepts**:\n\n| Concept | Definition | ChiveStack Default |\n|---|---|---|\n| **SLI** (Service Level Indicator) | What we measure — success rate, P95 latency | 99.9% availability, P95 < 1000ms |\n| **SLO** (Service Level Objective) | The target for the SLI | 99.9% over 28 days |\n| **Error Budget** | Allowed failures before SLO is violated | 0.1% of all requests |\n| **Burn Rate** | How fast the budget is being consumed | <1x = normal, >14.4x = critical |\n\n**Rows explained**:\n\n| Row | What It Shows |\n|---|---|\n| **SLO Status** | Current success rate, error budget remaining (%), P95 latency, burn rate multiplier |\n| **Error Budget Policy** | What to do at each budget threshold — business as usual vs feature freeze vs all-hands |\n| **Error Budget Burn** | Error rate vs budget threshold, burn rate multiplier over time with 1x/6x/14.4x alert lines |\n| **SLI History** | Success rate and latency trends over time with SLO target overlay |\n| **Compliance** | 28-day rolling SLO compliance per service (requires recording rules to accumulate data) |\n\n**Template variables**: `service`, `environment`, `slo_target` (99.9/99.5/99.0), `latency_target` (500ms–3000ms), `latency_percentile` (P95/P99)\n\n**Default time range**: 7 days with 1-minute auto-refresh."
+      }
+    },
+    {
+      "type": "text",
+      "title": "Error Budget Policy & Burn Rate Alerts",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "options": {
+        "mode": "markdown",
+        "content": "### Error Budget Policy\n\n| Budget Remaining | Action |\n|---|---|\n| **> 50%** | Business as usual. Normal release velocity. |\n| **25–50%** | Warn the team. No feature deploys. Investigate. |\n| **< 25%** | All hands. Freeze all deployments. Fix immediately. |\n| **0%** | SLO violated. Post-mortem required. |\n\nBudget period: 28 days. Target: 99.9% availability.\n\n### Burn Rate — Google SRE Multi-Window\n\nBurn rate = how many times faster than allowed the budget is being consumed.\n\n| Burn Rate | Time To Exhaust (28d budget) | Severity |\n|---|---|---|\n| **1x** (0.1% error rate) | 28 days | Normal — exactly on target |\n| **6x** (0.6% error rate) | ~4.7 days | High — investigate |\n| **14.4x** (1.44% error rate) | ~2 days | Critical — alert fires |\n\n**Alert**: `ChiveSloErrorBudgetBurn` fires when 1h burn > 14.4x AND 5m burn > 6x (multi-window). At this rate the budget exhausts in ~3 days.\n\n### What The Burn Rate Actually Means\n\n- **0.5x burn rate** = errors at half the allowed rate. Budget is accumulating. Good.\n- **1x burn rate** = exactly on target. Budget is being consumed at the planned rate.\n- **6x burn rate** = burning 6x faster than allowed. Investigate and slow deploys.\n- **14.4x burn rate** = burning dangerously fast. Immediate action needed.\n- **0x burn rate** = no errors detected (or no traffic).\n\n### SLO Recording Rules\n\n28d compliance data requires Prometheus recording rules (`slo-recording` group in alert.rules.yml). These pre-compute error rates over 28d windows. The compliance table will show \"no data\" until enough history accumulates."
+      }
+    },
+    {
+      "type": "row",
+      "title": "🔗  Data Sources & How They Connect",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 36 }
+    },
+    {
+      "type": "text",
+      "title": "Data Sources",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 37 },
+      "options": {
+        "mode": "markdown",
+        "content": "### Prometheus (port 9090)\n**Role**: Metrics database. Scrapes targets every 15 seconds, evaluates alert rules.\n**What it stores**:\n- Span metrics from Tempo (request rate, error rate, latency histograms)\n- Host metrics from Node Exporter (CPU, memory, disk, network)\n- Self-monitoring metrics (all stack components have /metrics endpoints)\n- Recording rules (SLO 28d compliance data)\n\n**Query language**: PromQL\n**Retention**: 30 days\n\n### Loki (port 3100)\n**Role**: Log aggregation. Receives logs from Promtail, makes them queryable.\n**What it stores**:\n- Docker container logs (stdout/stderr)\n- System logs (syslog, auth.log)\n- Application file logs (laravel.log from Chive/Screaming Eagle)\n\n**Query language**: LogQL\n**Retention**: 30 days\n\n### Tempo (port 3200/4318/4319)\n**Role**: Distributed trace backend. Receives OTel traces, generates span metrics.\n**What it stores**:\n- OTel traces from instrumented applications\n- Span metrics (prometheus format, remote-written to Prometheus)\n\n**Query language**: TraceQL\n**Retention**: Configured in tempo-config.yaml"
+      }
+    },
+    {
+      "type": "text",
+      "title": "How Data Moves Through The Stack",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 37 },
+      "options": {
+        "mode": "markdown",
+        "content": "### Trace Flow (Chive Charities only)\n```\ncc-donations app (OTel SDK)\n  │\n  ├─ sends OTel spans ──▶ Tempo:4318 (OTLP gRPC)\n  │\n  └─ Tempo extracts span metrics ──remote_write──▶ Prometheus:9090\n       (histogram_quantile, traces_spanmetrics_*)\n```\n\n### Log Flow (all apps)\n```\nDocker stdout/stderr\n  │\n  └─ Promtail reads via Docker socket\n       │\n       ├─ adds labels (container, service, stream)\n       │\n       └─ pushes to ──▶ Loki:3100\n           │\n           └─ Grafana queries via LogQL\n```\n\n### Alert Flow\n```\nPrometheus evaluates alert rules every 15s\n  │\n  ├─ alert fires ──▶ Alertmanager:9093\n  │                    │\n  │                    ├─ groups by alertname/instance/project\n  │                    ├─ inhibits low-priority alerts if node is down\n  │                    │\n  │                    └─ webhook ──▶ IRC Relay:8010 ──▶ #alerts on IRC\n  │                                      │\n  │                                      └─ IRC Bot sees alert in channel\n  │                                           │\n  │                                           ├─ queries Prometheus/Loki/Tempo\n  │                                           ├─ runs LLM analysis (Ollama)\n  │                                           └─ posts investigation result\n```\n\n### Grafana (port 3030)\nQueries all three data sources. Dashboards auto-refresh based on configured intervals. Provisioned dashboards reload every 30 seconds from `grafana/dashboards/`."
+      }
+    },
+    {
+      "type": "row",
+      "title": "🔔  Alert Rules Reference",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 44 }
+    },
+    {
+      "type": "text",
+      "title": "Alert Groups & Rules",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 45 },
+      "options": {
+        "mode": "markdown",
+        "content": "### All Alert Rules (`prometheus/alert.rules.yml`)\n\n| Group | Alerts | Severity | What Triggers |\n|---|---|---|---|\n| **observability-stack** | LokiDown, TempoDown, AlertmanagerDown, LokiHighIngestionRate, LokiDiskUsageHigh | critical/warning | Stack component health |\n| **server-health** | HighCPUUsage, HighMemoryUsage, HighDiskUsage, InstanceDown | warning/critical | Host resource exhaustion |\n| **chive-charities** | ChiveDonationsDown, ChiveRecipientsDown, ChiveHighLatency, ChiveHighErrorRate, ChiveNoTraces, ChiveRecipientsTraefikDown | warning/critical | Chive application health |\n| **app-errors** | ChiveApiErrorRateHigh, ChiveLogErrorSpike | warning/critical | Cross-service error spikes |\n| **screaming-eagle** | EagleDown | critical | Eagle host unreachable |\n| **slo-recording** | (5 recording rules) | — | Pre-computed 28d SLO metrics (not alerts) |\n| **slo-burn-rate** | ChiveSloErrorBudgetBurn | critical | Error budget burning at >14.4x over 1h and >6x over 5m |\n\n### Alert Routing (`alertmanager/alertmanager.yml`)\n- All alerts go to #alerts via IRC relay webhook\n- Grouped by alertname + instance + project (30s group_wait, 5m group_interval)\n- Critical alerts repeat every 4 hours\n- Warning alerts repeat every 12 hours\n- If ChiveDonationsDown fires, it inhibits ChiveHighLatency, ChiveHighErrorRate, etc. (inhibition rules — prevents cascading alerts when the node is down)\n\n### Post-Alert Investigation\n1. Alert appears in #alerts\n2. ChiveStack IRC bot auto-investigates (calls `query_loki_top_errors`, queries Prometheus)\n3. Bot posts 3-5 line summary with action items\n4. Open the relevant dashboard (check the `grafana_url` in the alert for a direct link)"
+      }
+    },
+    {
+      "type": "row",
+      "title": "🛠  Scripts & Utilities",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 55 }
+    },
+    {
+      "type": "text",
+      "title": "Available Scripts",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 56 },
+      "options": {
+        "mode": "markdown",
+        "content": "All scripts live in `scripts/` and `utils/`.\n\n### Simulation & Testing\n\n| Script | What It Does |\n|---|---|\n| **`simulation-6h.py`** | Sustained traffic generator — sends OTel traces to Tempo, hits API endpoints, pushes synthetic logs to Loki. Runs for 48 hours by default. Generates data for all three dashboards. |\n| **`alert-simulation.py`** / **`alert-simulation.sh`** | Trigger specific alerts for testing alert delivery |\n| **`test-alert.sh`** | Quick alert delivery test |\n| **`traffic-generator.py`** | Simple HTTP traffic generator for load testing |\n| **`populate-dashboard.py`** | Ensures dashboard panels have data |\n| **`boot-test.sh`** | Boot-time health check |\n| **`validate.sh`** | Config validation (YAML syntax, JSON structure) |\n\n### Investigation\n\n| Script | What It Does |\n|---|---|\n| **`investigate/active-alerts.sh`** | Lists all currently firing alerts |\n| **`investigate/prometheus-target-check.sh`** | Checks all Prometheus scrape targets |\n| **`investigate/server-diag.sh`** | Full host diagnostic (CPU, memory, disk, processes) |\n| **`investigate/traefik-exploit-scan.py`** | Scans Traefik logs for exploitation patterns |\n| **`investigate/traefik-traffic-analysis.py`** | Analyzes Traefik access logs |\n\n### Deployment\n\n| Script | What It Does |\n|---|---|\n| **`utils/node-exporter-installer.sh`** | Installs Node Exporter on a monitored host |\n| **Deploy annotation** | See `prometheus/prometheus.yml` comments for the one-liner to record deploy timestamps as Prometheus metrics |\n\n### Quick Access\n```bash\n# Start the stack\ndocker compose up -d\n\n# Start the 48-hour simulation\npython3 scripts/simulation-6h.py\n\n# Check current alerts\nbash scripts/investigate/active-alerts.sh\n\n# Validate all configs\nbash scripts/validate.sh\n\n# Access dashboards\nopen http://localhost:3030/d/chive-charities   # Observability\nopen http://localhost:3030/d/error-audit        # Error Audit\nopen http://localhost:3030/d/slo                # SLO\nopen http://localhost:3030/d/help               # This Guide\n```"
+      }
+    }
+  ],
+  "schemaVersion": 39
+}

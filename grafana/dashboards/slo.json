@@ -1,0 +1,968 @@
+{
+  "title": "SLO \u2014 Service Level Reliability",
+  "uid": "slo",
+  "tags": [
+    "slo",
+    "sli",
+    "error-budget",
+    "reliability"
+  ],
+  "refresh": "1m",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "type": "custom",
+        "current": {
+          "text": "All",
+          "value": ".+"
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": ".+"
+          },
+          {
+            "selected": false,
+            "text": "cc-donations",
+            "value": "cc-donations"
+          },
+          {
+            "selected": false,
+            "text": "cc-recipients",
+            "value": "cc-recipients"
+          }
+        ],
+        "multi": true,
+        "includeAll": true,
+        "label": "Service",
+        "query": "cc-donations,cc-recipients",
+        "skipUrlSync": false
+      },
+      {
+        "name": "environment",
+        "type": "custom",
+        "current": {
+          "text": "All",
+          "value": ".+"
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": ".+"
+          },
+          {
+            "selected": false,
+            "text": "development",
+            "value": "development"
+          },
+          {
+            "selected": false,
+            "text": "staging",
+            "value": "staging"
+          },
+          {
+            "selected": false,
+            "text": "production",
+            "value": "production"
+          }
+        ],
+        "multi": false,
+        "includeAll": true,
+        "label": "Environment",
+        "query": "development,staging,production",
+        "skipUrlSync": false
+      },
+      {
+        "name": "slo_target",
+        "type": "custom",
+        "current": {
+          "text": "99.9",
+          "value": "99.9"
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "99.9%",
+            "value": "99.9"
+          },
+          {
+            "selected": false,
+            "text": "99.5%",
+            "value": "99.5"
+          },
+          {
+            "selected": false,
+            "text": "99.0%",
+            "value": "99.0"
+          }
+        ],
+        "multi": false,
+        "includeAll": false,
+        "label": "Availability SLO",
+        "query": "99.9,99.5,99.0",
+        "skipUrlSync": false
+      },
+      {
+        "name": "latency_target",
+        "type": "custom",
+        "current": {
+          "text": "1000ms",
+          "value": "1000"
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "1000ms",
+            "value": "1000"
+          },
+          {
+            "selected": false,
+            "text": "500ms",
+            "value": "500"
+          },
+          {
+            "selected": false,
+            "text": "2000ms",
+            "value": "2000"
+          },
+          {
+            "selected": false,
+            "text": "3000ms",
+            "value": "3000"
+          }
+        ],
+        "multi": false,
+        "includeAll": false,
+        "label": "Latency SLO",
+        "query": "1000,500,2000,3000",
+        "skipUrlSync": false
+      },
+      {
+        "name": "latency_percentile",
+        "type": "custom",
+        "current": {
+          "text": "95",
+          "value": "0.95"
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "P95",
+            "value": "0.95"
+          },
+          {
+            "selected": false,
+            "text": "P99",
+            "value": "0.99"
+          }
+        ],
+        "multi": false,
+        "includeAll": false,
+        "label": "Latency Percentile",
+        "query": "0.95,0.99",
+        "skipUrlSync": false
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "SLO Status",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Success Rate",
+      "description": "Current success rate (non-error requests / total). Compared against $slo_target% availability SLO.",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "(1 - (\n  sum(rate(traces_spanmetrics_calls_total{service=~\"$service\", environment=~\"$environment\", status_code=\"STATUS_CODE_ERROR\"}[1h]))\n  /\n  sum(rate(traces_spanmetrics_calls_total{service=~\"$service\", environment=~\"$environment\"}[1h]))\n)) * 100",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 3,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": "$slo_target"
+              }
+            ]
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0e View error traces",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22tempo%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22queryType%22%3A%20%22traceql%22%2C%20%22query%22%3A%20%22%7Bstatus.code%3D2%7D%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Error Budget Remaining",
+      "description": "Percentage of the error budget still available. SLO = $slo_target% means budget = ${1 - slo_target/100}% of all requests.",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "clamp_min(\n  (1 - $slo_target / 100)\n  -\n  (\n    sum(rate(traces_spanmetrics_calls_total{service=~\"$service\", environment=~\"$environment\", status_code=\"STATUS_CODE_ERROR\"}[1h]))\n    /\n    sum(rate(traces_spanmetrics_calls_total{service=~\"$service\", environment=~\"$environment\"}[1h]))\n  )\n  , 0\n)\n/\n(1 - $slo_target / 100)\n* 100",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 2,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 25
+              },
+              {
+                "color": "green",
+                "value": 50
+              }
+            ]
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0d View error logs",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22loki%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22expr%22%3A%20%22%7Bproject%3D~%5C%22chive-charities%7Cscreaming-eagle%5C%22%7D%20%7C~%20%5C%22%28%3Fi%29error%7Cexception%7Cfatal%7Cstack%7CSQLSTATE%7C500%5C%22%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "P95 Latency",
+      "description": "Current latency at the $latency_percentile percentile. Compared against ${latency_target}ms SLO.",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile($latency_percentile, sum by (le) (rate(traces_spanmetrics_latency_bucket{service=~\"$service\", environment=~\"$environment\"}[1h]))) * 1000",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "decimals": 1,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": "$latency_target"
+              }
+            ]
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0e View traces",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22tempo%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22queryType%22%3A%20%22traceql%22%2C%20%22query%22%3A%20%22%7Bresource.service.name%3D~%5C%22%24service%5C%22%7D%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Burn Rate (1h)",
+      "description": "Error budget consumption rate multiplier. >1 means budget is depleting faster than allowed. >14.4 triggers critical alert.",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "(\n  sum(rate(traces_spanmetrics_calls_total{service=~\"$service\", environment=~\"$environment\", status_code=\"STATUS_CODE_ERROR\"}[1h]))\n  /\n  sum(rate(traces_spanmetrics_calls_total{service=~\"$service\", environment=~\"$environment\"}[1h]))\n)\n/\n(1 - $slo_target / 100)",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2,
+          "min": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 6
+              }
+            ]
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0e Error Audit dashboard",
+              "url": "/d/error-audit",
+              "targetBlank": true
+            }
+          ]
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "text",
+      "title": "Error Budget Policy",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "options": {
+        "content": "**Error Budget Policy**\n\n| Budget Remaining | Action |\n|---|---|\n| > 50% | Business as usual |\n| 25\u201350% | Warn team; no feature deploys |\n| < 25% | All hands; freeze all deployments |\n| 0% | SLO violated \u2014 post-mortem required |\n\nBudget period: 28 days | Target: 99.9% availability | Check the burn rate panels below when budget is low.",
+        "mode": "markdown"
+      }
+    },
+    {
+      "type": "row",
+      "title": "Error Budget Burn",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error Budget Consumption Rate",
+      "description": "Error rate over time vs the allowed error budget rate (horizontal line). When bar exceeds the line, budget is being consumed.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (service) (rate(traces_spanmetrics_calls_total{service=~\"$service\", environment=~\"$environment\", status_code=\"STATUS_CODE_ERROR\"}[5m]))\n/\nsum by (service) (rate(traces_spanmetrics_calls_total{service=~\"$service\", environment=~\"$environment\"}[5m]))\n* 100",
+          "refId": "A",
+          "legendFormat": "{{service}}"
+        },
+        {
+          "expr": "vector(1 - $slo_target / 100) * 100",
+          "refId": "B",
+          "legendFormat": "SLO budget threshold"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 30
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SLO budget threshold"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    5
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Burn Rate Multiplier Over Time",
+      "description": "How many times faster than allowed the budget is burning. Threshold lines: 1x (warning), 6x (high), 14.4x (critical \u2014 ~3d to exhaust).",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "(\n  sum(rate(traces_spanmetrics_calls_total{service=~\"$service\", environment=~\"$environment\", status_code=\"STATUS_CODE_ERROR\"}[1h]))\n  /\n  sum(rate(traces_spanmetrics_calls_total{service=~\"$service\", environment=~\"$environment\"}[1h]))\n)\n/\n(1 - $slo_target / 100)",
+          "refId": "A",
+          "legendFormat": "1h burn rate"
+        },
+        {
+          "expr": "(\n  sum(rate(traces_spanmetrics_calls_total{service=~\"$service\", environment=~\"$environment\", status_code=\"STATUS_CODE_ERROR\"}[5m]))\n  /\n  sum(rate(traces_spanmetrics_calls_total{service=~\"$service\", environment=~\"$environment\"}[5m]))\n)\n/\n(1 - $slo_target / 100)",
+          "refId": "B",
+          "legendFormat": "5m burn rate"
+        },
+        {
+          "expr": "vector(1)",
+          "refId": "C",
+          "legendFormat": "1x (normal)"
+        },
+        {
+          "expr": "vector(6)",
+          "refId": "D",
+          "legendFormat": "6x (high)"
+        },
+        {
+          "expr": "vector(14.4)",
+          "refId": "E",
+          "legendFormat": "14.4x (critical)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "1x (normal)"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    5
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "6x (high)"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    5
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "14.4x (critical)"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    5
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "SLI History",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Success Rate Trend",
+      "description": "Success rate over time by service. SLO target line shown as dashed threshold.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 19
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "(1 - (\n  sum by (service) (rate(traces_spanmetrics_calls_total{service=~\"$service\", environment=~\"$environment\", status_code=\"STATUS_CODE_ERROR\"}[5m]))\n  /\n  sum by (service) (rate(traces_spanmetrics_calls_total{service=~\"$service\", environment=~\"$environment\"}[5m]))\n)) * 100",
+          "refId": "A",
+          "legendFormat": "{{service}}"
+        },
+        {
+          "expr": "vector($slo_target)",
+          "refId": "B",
+          "legendFormat": "SLO target"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 95,
+          "max": 100,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SLO target"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    5
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "min"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency Trend",
+      "description": "Latency percentile over time by service. SLO target line shown as dashed threshold.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 19
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile($latency_percentile, sum by (le, service) (rate(traces_spanmetrics_latency_bucket{service=~\"$service\", environment=~\"$environment\"}[5m]))) * 1000",
+          "refId": "A",
+          "legendFormat": "{{service}}"
+        },
+        {
+          "expr": "vector($latency_target)",
+          "refId": "B",
+          "legendFormat": "SLO target"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SLO target"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    5
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Compliance \u2014 28-Day Window",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      }
+    },
+    {
+      "type": "table",
+      "title": "Per-Service SLO Compliance",
+      "description": "28-day rolling SLO compliance using pre-computed recording rules. Green = meeting SLO. Requires slo recording rules in alert.rules.yml.",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "slo:success_rate:ratio28d{service=~\"$service\", environment=~\"$environment\"} * 100",
+          "refId": "A",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "{{service}}"
+        }
+      ],
+      "transformations": [],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 3,
+          "custom": {
+            "align": "center"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": "$slo_target"
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Success Rate %"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "service"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Service"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "environment"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Environment"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Value",
+            "desc": true
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 39
+}

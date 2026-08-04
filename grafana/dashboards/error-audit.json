@@ -1,0 +1,692 @@
+{
+  "title": "Error Audit \u2014 All Apps",
+  "uid": "error-audit",
+  "tags": [
+    "errors",
+    "audit",
+    "chive-charities",
+    "screaming-eagle",
+    "kubernetes"
+  ],
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "project",
+        "type": "custom",
+        "current": {
+          "text": "All",
+          "value": ".+"
+        },
+        "options": [
+          {
+            "text": "All",
+            "value": ".+"
+          },
+          {
+            "text": "chive-charities",
+            "value": "chive-charities"
+          },
+          {
+            "text": "screaming-eagle",
+            "value": "screaming-eagle"
+          }
+        ],
+        "multi": true,
+        "includeAll": true,
+        "label": "Project",
+        "query": "chive-charities,screaming-eagle",
+        "skipUrlSync": false
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "Overview",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "stat",
+      "title": "API Errors/sec",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(traces_spanmetrics_calls_total{status_code=~\"STATUS_CODE_ERROR\"}[5m]))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 20
+              }
+            ]
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0e View error traces",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22tempo%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22queryType%22%3A%20%22traceql%22%2C%20%22query%22%3A%20%22%7Bstatus.code%3D2%7D%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "cc-donations Errors",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(traces_spanmetrics_calls_total{service=\"cc-donations\", status_code=~\"STATUS_CODE_ERROR\"}[5m]))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 2
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0e cc-donations error traces",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22tempo%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22queryType%22%3A%20%22traceql%22%2C%20%22query%22%3A%20%22%7Bresource.service.name%3D%5C%22cc-donations%5C%22%20%26%26%20status.code%3D2%7D%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "cc-recipients Errors",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(traces_spanmetrics_calls_total{service=\"cc-recipients\", status_code=~\"STATUS_CODE_ERROR\"}[5m]))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 2
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0e cc-recipients error traces",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22tempo%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22queryType%22%3A%20%22traceql%22%2C%20%22query%22%3A%20%22%7Bresource.service.name%3D%5C%22cc-recipients%5C%22%20%26%26%20status.code%3D2%7D%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Eagle Errors",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum(rate({project=\"screaming-eagle\", container!~\"loki|grafana|prometheus|tempo|alertmanager|promtail|irc-relay\"} |~ \"(?i)error|exception|fatal|stack|SQLSTATE|500\" [5m]))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0d Eagle error logs",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22loki%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22expr%22%3A%20%22%7Bproject%3D%5C%22screaming-eagle%5C%22%7D%20%7C~%20%5C%22%28%3Fi%29error%7Cexception%7Cfatal%7Cstack%7CSQLSTATE%7C500%5C%22%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Error Trends",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "API Errors by Service",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (service) (rate(traces_spanmetrics_calls_total{status_code=~\"STATUS_CODE_ERROR\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "{{service}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 30
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0d ${__field.labels.service} logs",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22loki%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22expr%22%3A%20%22%7Bproject%3D%5C%22chive-charities%5C%22%2C%20service%3D~%5C%22%24%7B__field.labels.service%7D-.%2A%5C%22%7D%20%7C~%20%5C%22%28%3Fi%29error%7Cexception%7Cfatal%7Cstack%7CSQLSTATE%7C500%5C%22%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            },
+            {
+              "title": "\ud83d\udd0e ${__field.labels.service} traces",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22tempo%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22queryType%22%3A%20%22traceql%22%2C%20%22query%22%3A%20%22%7Bresource.service.name%3D%5C%22%24%7B__field.labels.service%7D%5C%22%20%26%26%20status.code%3D2%7D%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Application Log Errors",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (project) (rate({project=~\"$project\", container!~\"loki|grafana|prometheus|tempo|alertmanager|promtail|irc-relay\"} |~ \"(?i)error|exception|fatal|stack|SQLSTATE|500\" [5m]))",
+          "refId": "A",
+          "legendFormat": "{{project}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 30
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0d ${__field.labels.project} error logs",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22loki%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22expr%22%3A%20%22%7Bproject%3D%5C%22%24%7B__field.labels.project%7D%5C%22%7D%20%7C~%20%5C%22%28%3Fi%29error%7Cexception%7Cfatal%7Cstack%7CSQLSTATE%7C500%5C%22%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Error Details",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      }
+    },
+    {
+      "type": "barchart",
+      "title": "API Errors by Endpoint",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (span_name) (rate(traces_spanmetrics_calls_total{status_code=~\"STATUS_CODE_ERROR\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "{{span_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 60
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0d Logs for this endpoint",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22loki%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22expr%22%3A%20%22%7Bproject%3D%5C%22chive-charities%5C%22%7D%20%7C~%20%5C%22%28%3Fi%29%24%7B__field.labels.span_name%7D%5C%22%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            },
+            {
+              "title": "\ud83d\udd0e Traces for this endpoint",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22tempo%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22queryType%22%3A%20%22traceql%22%2C%20%22query%22%3A%20%22%7Bname%3D%5C%22%24%7B__field.labels.span_name%7D%5C%22%7D%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Database & External Errors",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (service) (rate({project=~\"$project\", container!~\"loki|grafana|prometheus|tempo|alertmanager|promtail|irc-relay\"} |~ \"(?i)SQLSTATE|mysql|connection refused|timeout|timed out|Braintree\" [5m]))",
+          "refId": "A",
+          "legendFormat": "{{service}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 30
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0d ${__field.labels.service} DB errors",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22loki%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22expr%22%3A%20%22%7Bproject%3D~%5C%22%24project%5C%22%2C%20service%3D%5C%22%24%7B__field.labels.service%7D%5C%22%7D%20%7C~%20%5C%22%28%3Fi%29SQLSTATE%7Cmysql%7Cconnection%20refused%7Ctimeout%5C%22%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Error Logs",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      }
+    },
+    {
+      "type": "logs",
+      "title": "cc-donations",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 24
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{project=\"chive-charities\", container=~\"cc-donations-.*\", container!~\"loki|grafana|prometheus|tempo|alertmanager|promtail|irc-relay\"} |~ \"(?i)error|exception|fatal|stack|SQLSTATE|500\"",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      }
+    },
+    {
+      "type": "logs",
+      "title": "cc-recipients",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 24
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{project=\"chive-charities\", container=~\"cc-recipients-.*\", container!~\"loki|grafana|prometheus|tempo|alertmanager|promtail|irc-relay\"} |~ \"(?i)error|exception|fatal|stack|SQLSTATE|500\"",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      }
+    },
+    {
+      "type": "logs",
+      "title": "Screaming Eagle",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 24
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{project=\"screaming-eagle\", container!~\"loki|grafana|prometheus|tempo|alertmanager|promtail|irc-relay\"} |~ \"(?i)error|exception|fatal|stack|SQLSTATE|500\"",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      }
+    },
+    {
+      "type": "row",
+      "title": "Kubernetes",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 32
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Log Volume by Namespace",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 33
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (namespace) (rate({namespace=~\".+\", container!~\"loki|grafana|prometheus|tempo|alertmanager|promtail|irc-relay\"} [5m]))",
+          "refId": "A",
+          "legendFormat": "{{namespace}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 60,
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Pod Errors by Namespace",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 33
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (namespace) (rate({namespace=~\".+\", container!~\"loki|grafana|prometheus|tempo|alertmanager|promtail|irc-relay\"} |~ \"(?i)error|exception|fatal|stack|SQLSTATE|500\" [5m]))",
+          "refId": "A",
+          "legendFormat": "{{namespace}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 30
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "links": [
+            {
+              "title": "\ud83d\udd0d ${__field.labels.namespace} error logs",
+              "url": "/explore?left=%7B%22datasource%22%3A%20%22loki%22%2C%20%22queries%22%3A%20%5B%7B%22refId%22%3A%20%22A%22%2C%20%22expr%22%3A%20%22%7Bnamespace%3D%5C%22%24%7B__field.labels.namespace%7D%5C%22%7D%20%7C~%20%5C%22%28%3Fi%29error%7Cexception%7Cfatal%7Cstack%7CSQLSTATE%7C500%5C%22%22%7D%5D%2C%20%22range%22%3A%20%7B%22from%22%3A%20%22%24%7B__from%7D%22%2C%20%22to%22%3A%20%22%24%7B__to%7D%22%7D%7D",
+              "targetBlank": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Top Error Patterns",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 42
+      }
+    },
+    {
+      "type": "logs",
+      "title": "Recent Errors (deduplicated)",
+      "description": "Most recent unique error log entries. Use the IRC bot's query_loki_top_errors for a grouped summary.",
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{project=~\"$project\", container!~\"loki|grafana|prometheus|tempo|alertmanager|promtail|irc-relay\"} |~ \"(?i)error|exception|fatal|stack|SQLSTATE|500\"",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "exact"
+      }
+    }
+  ],
+  "schemaVersion": 36
+}
