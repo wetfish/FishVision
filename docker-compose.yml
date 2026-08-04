@@ -109,7 +109,7 @@ services:
     container_name: loki
     ports:
       - "3100:3100"
-    user: "10001:10001"
+    user: "0:0"
     command:
       - -config.file=/etc/loki/loki-config.yaml
     volumes:
@@ -162,12 +162,12 @@ services:
   tempo:
     image: grafana/tempo:2.5.0
     container_name: tempo
+    user: "0:0"
     ports:
       - "3200:3200" # HTTP API/Query
       - "4320:4320" # Internal gRPC (server port)
       - "4318:4318" # OTLP gRPC receiver (for receiving traces)
       - "4319:4319" # OTLP HTTP receiver
-    user: "10001:10001"
     volumes:
       - ./tempo/tempo-config.yaml:/etc/tempo/tempo-config.yaml:ro
       - tempo-data:/tempo-data
